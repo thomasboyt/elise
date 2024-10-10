@@ -3,7 +3,8 @@ import { Input, Output, PortEvent, WebMidi } from 'webmidi';
 import { EliseMIDIDevice } from './types';
 import { DeviceSelector } from './DeviceSelector';
 import { DebugUi } from './DebugUi';
-import { Elise } from './Elise';
+// import { Elise } from './Elise';
+import { MIDIControllerProvider } from './controllers/MIDIControllerContext';
 
 function addDeviceIfNotPresent(
   devices: EliseMIDIDevice[],
@@ -135,16 +136,16 @@ function App() {
         onChange={setSelectedOutputDeviceId}
       />
       {selectedInputDeviceId && selectedOutputDeviceId && (
-        <>
-          <Elise
+        <MIDIControllerProvider
+          inputId={selectedInputDeviceId}
+          outputId={selectedOutputDeviceId}
+        >
+          {/* <Elise
             inputId={selectedInputDeviceId}
             outputId={selectedOutputDeviceId}
-          />
-          <DebugUi
-            inputId={selectedInputDeviceId}
-            outputId={selectedOutputDeviceId}
-          />
-        </>
+          /> */}
+          <DebugUi />
+        </MIDIControllerProvider>
       )}
     </>
   );

@@ -1,33 +1,22 @@
-import * as LaunchkeyMIDIConstants from './launchkey/LaunchkeyMIDIConstants';
-import { launchkeySysexMessageFactories } from './launchkey/LaunchkeyMIDIAdapter';
+import { defaultControllerState } from './controllers/ControllerState';
+import { useMidiController } from './controllers/useMidiController';
 
-interface Props {
-  onSendSysex: (data: number[]) => void;
-}
-
-export function SendControls(props: Props) {
-  const { onSendSysex } = props;
-
-  function handleInit() {
-    onSendSysex(launchkeySysexMessageFactories.enableDawMode());
-    onSendSysex(
-      launchkeySysexMessageFactories.setDisplayText(
-        'regular',
-        LaunchkeyMIDIConstants.messageTargets.dawModeLabel,
-        0,
-        'Elise',
-      ),
-    );
-  }
-
-  function handleExit() {
-    onSendSysex(launchkeySysexMessageFactories.disableDawMode());
-  }
+export function SendControls() {
+  const controller = useMidiController();
 
   return (
     <>
-      <button onClick={handleInit}>Init DAW mode</button>
-      <button onClick={handleExit}>Exit DAW mode</button>
+      <button onClick={() => controller?.initController()}>
+        Init controller
+      </button>
+      <button onClick={() => controller?.teardownController()}>
+        Tear down controller
+      </button>
+      <button
+        onClick={() => controller?.resetFromState(defaultControllerState)}
+      >
+        Send default controller state
+      </button>
     </>
   );
 }

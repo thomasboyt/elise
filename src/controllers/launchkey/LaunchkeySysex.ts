@@ -2,11 +2,7 @@
 // https://fael-downloads-prod.focusrite.com/customer/prod/downloads/launchkey_mk4_mini_37_user_guide_v1.1_pdf-en.pdf
 // https://fael-downloads-prod.focusrite.com/customer/prod/downloads/launchkey_mk4_49_user_guide_v1.1_pdf-en.pdf
 
-import {
-  getSysExPrefix,
-  LaunchkeySkuType,
-  messageTargets,
-} from './LaunchkeyMIDIConstants';
+import { getSysExPrefix, LaunchkeySkuType } from './LaunchkeyConstants';
 
 function textToAscii(text: string): number[] {
   const ascii = [];
@@ -55,29 +51,3 @@ export const launchkeySysexMessageFactories = {
     return [...getSysExPrefix(sku), 9, target, bitmapData, 127];
   },
 };
-
-export class LaunchkeyMIDIAdapter {
-  sku: LaunchkeySkuType;
-
-  constructor(sku: LaunchkeySkuType) {
-    this.sku = sku;
-  }
-
-  private sendMesage(msg: number[]) {
-    console.log(msg.map((item) => item.toString(16)).join(' '));
-  }
-
-  init() {
-    const initMsg = launchkeySysexMessageFactories.enableDawMode();
-    const nameDawModeMsg = launchkeySysexMessageFactories.setDisplayText(
-      this.sku,
-      messageTargets.dawModeLabel,
-      0,
-      'Elise',
-    );
-    this.sendMesage(initMsg);
-    this.sendMesage(nameDawModeMsg);
-  }
-
-  exit() {}
-}

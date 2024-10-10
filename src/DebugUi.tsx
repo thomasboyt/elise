@@ -1,14 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageEvent, WebMidi } from 'webmidi';
+import { MessageEvent } from 'webmidi';
 import { SendControls } from './SendControls';
+import { useMidiController } from './controllers/useMidiController';
+import { HardwareControllerSurface } from './controllers/ControllerSurface';
 
-interface Props {
-  inputId: string;
-  outputId: string;
-}
-
-export function DebugUi(props: Props) {
-  const { inputId, outputId } = props;
+export function DebugUi() {
+  const controller = useMidiController();
   const [messageLog, setMessageLog] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
 
@@ -19,20 +16,17 @@ export function DebugUi(props: Props) {
     ]);
   }
 
-  function handleSendSysex(data: number[]) {
-    WebMidi.getOutputById(outputId)?.send(data);
-  }
-
   useEffect(() => {
-    WebMidi.getInputById(inputId).addListener('midimessage', handleMidiMessage);
+    if (controller instanceof HardwareControllerSurface) {
+      controller.input.addListener('midimessage', handleMidiMessage);
+    }
 
     return () => {
-      WebMidi.getInputById(inputId).removeListener(
-        'midimessage',
-        handleMidiMessage,
-      );
+      if (controller instanceof HardwareControllerSurface) {
+        controller.input.removeListener('midimessage', handleMidiMessage);
+      }
     };
-  }, [inputId]);
+  }, [controller]);
 
   useEffect(() => {
     if (logRef.current) {
@@ -43,7 +37,7 @@ export function DebugUi(props: Props) {
   return (
     <>
       <div>
-        <SendControls onSendSysex={handleSendSysex} />
+        <SendControls />
       </div>
 
       <div

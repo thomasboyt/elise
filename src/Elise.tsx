@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NoteMessageEvent, WebMidi } from 'webmidi';
-import * as LaunchkeyMIDIConstants from './launchkey/LaunchkeyMIDIConstants';
+import * as LaunchkeyMIDIConstants from './controllers/launchkey/LaunchkeyConstants';
 
 interface Props {
   inputId: string;

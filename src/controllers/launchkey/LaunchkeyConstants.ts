@@ -1,3 +1,5 @@
+import { PadColor } from '../../util/PadColor';
+
 function arrayToMapByIndex<T>(array: T[]): Map<number, T> {
   return new Map(array.map((v, k) => [k, v]));
 }
@@ -97,3 +99,66 @@ export const messageTargets = {
 export function getSysExPrefix(sku: LaunchkeySkuType): number[] {
   return [240, 0, 32, 41, 2, sku === 'regular' ? 20 : 19];
 }
+
+// Page 15
+// We use these instead of custom RGB so we can use flashing/pulsing states
+export const padColors: Record<PadColor, number> = {
+  off: 0,
+  red: 5,
+  green: 17,
+  blue: 37,
+};
+
+// Page 10
+export type PadMode =
+  | 'drum'
+  | 'daw'
+  | 'userChords'
+  | 'custom1'
+  | 'custom2'
+  | 'custom3'
+  | 'custom4'
+  | 'arpPattern'
+  | 'chordMap';
+
+export const midiCCToPadMode = new Map<number, PadMode>([
+  [1, 'drum'],
+  [2, 'daw'],
+  [4, 'userChords'],
+  [5, 'custom1'],
+  [6, 'custom2'],
+  [7, 'custom3'],
+  [8, 'custom4'],
+  [13, 'arpPattern'],
+  [14, 'chordMap'],
+]);
+
+// Page 11
+export type EncoderMode =
+  | 'mixer'
+  | 'plugin'
+  | 'sends'
+  | 'transport'
+  | 'custom1'
+  | 'custom2'
+  | 'custom3'
+  | 'custom4';
+
+export const midiCCToEncoderMode = new Map<number, EncoderMode>([
+  [1, 'mixer'],
+  [2, 'plugin'],
+  [4, 'sends'],
+  [5, 'transport'],
+  [6, 'custom1'],
+  [7, 'custom2'],
+  [8, 'custom3'],
+  [9, 'custom4'],
+]);
+
+export const absoluteEncoderCcOffset = 21;
+export const relativeEncoderCcOffset = 85;
+export const faderCcOffset = 5;
+export const faderButtonCcOffset = 37;
+// Page 17
+export const displayEncoderTargetOffset = 5; // 05h
+export const displayFaderTargetOffset = 21; // 15h
