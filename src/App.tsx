@@ -8,6 +8,7 @@ import { DebugControls } from './DebugControls';
 import { EliseContextProvider } from './state/EliseContextProvider';
 import { StateTree } from './StateTree';
 import { ControllerMessageHandler } from './controllers/ControllerMessageHandler';
+import { VirtualController } from './components/VirtualController';
 
 function addDeviceIfNotPresent(
   devices: EliseMIDIDevice[],
@@ -138,20 +139,18 @@ function App() {
         currentId={selectedOutputDeviceId}
         onChange={setSelectedOutputDeviceId}
       />
-      {selectedInputDeviceId && selectedOutputDeviceId && (
-        <MIDIControllerProvider
-          inputId={selectedInputDeviceId}
-          outputId={selectedOutputDeviceId}
-        >
-          <EliseContextProvider>
-            {/* <EliseUI /> */}
-            <ControllerMessageHandler />
-            <DebugControls />
-            <DebugLog />
-            <StateTree />
-          </EliseContextProvider>
-        </MIDIControllerProvider>
-      )}
+      <MIDIControllerProvider
+        inputId={selectedInputDeviceId}
+        outputId={selectedOutputDeviceId}
+      >
+        <EliseContextProvider>
+          <ControllerMessageHandler />
+          <DebugControls />
+          <VirtualController />
+          <DebugLog />
+          <StateTree />
+        </EliseContextProvider>
+      </MIDIControllerProvider>
     </>
   );
 }

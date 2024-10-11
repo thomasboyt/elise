@@ -1,17 +1,18 @@
+import { EliseState, UIPage } from '../state/state';
+import { getCurrentPageEncoders } from '../ui/getCurrentPageEncoders';
+import { Encoder, PadColor } from '../ui/uiModels';
+
 /**
  * The ControllerState is a "snapshot" that can be computed from the overall
  * Elise state at any time and sent to a controller to reset the current
  * controller state.
  */
-
-import { EliseState, UIPage } from '../state/state';
-import { getCurrentPageEncoders } from '../ui/getCurrentPageEncoders';
-import { Encoder, PadColor } from '../ui/uiModels';
-
 export interface ControllerState {
   page: UIPage;
   encoders: (Encoder | null)[];
   pads: PadColor[];
+  // TODO: current pattern (for display state)
+  // TODO: current track (for display state)
 }
 
 export function getControllerState(state: EliseState): ControllerState {

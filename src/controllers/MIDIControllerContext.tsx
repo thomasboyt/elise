@@ -1,31 +1,37 @@
 import { createContext, ReactNode, useState } from 'react';
-import {
-  ControllerSurface,
-  HardwareControllerSurface,
-} from './ControllerSurface';
+import { ControllerSurface } from './ControllerSurface';
 import { LaunchkeyControllerSurface } from './launchkey/LaunchkeyControllerSurface';
 import { WebMidi } from 'webmidi';
+import { ControllerSurfaceGroup } from './ControllerSurfaceGroup';
+import { VirtualControllerSurface } from './VirtualControllerSurface';
 
 interface MIDIControllerContextShape {
   controller: ControllerSurface | null;
+  virtualController: VirtualControllerSurface | null;
 }
 
 export const MIDIControllerContext = createContext<MIDIControllerContextShape>({
-  // softwareController: ControllerSurface,
   controller: null,
+  virtualController: null,
 });
 
 interface Props {
   children: ReactNode;
-  inputId: string;
-  outputId: string;
+  inputId: string | null;
+  outputId: string | null;
 }
 
 export function MIDIControllerProvider({ children, inputId, outputId }: Props) {
-  const [hardwareController, setHardwareController] =
-    useState<HardwareControllerSurface | null>(null);
+  // const [virtualController, setVirtualController] = useState(
+  //   () => new VirtualControllerSurface(),
+  // );
+  // const [hardwareController, setHardwareController] =
+  //   useState<HardwareControllerSurface | null>(null);
+
+  const [controllerSurfaceGroup] = useState(() => new ControllerSurfaceGroup());
 
   if (inputId && outputId) {
+    const hardwareController = controllerSurfaceGroup.getHardwareController();
     if (
       !hardwareController ||
       hardwareController.input.id !== inputId ||
@@ -46,11 +52,13 @@ export function MIDIControllerProvider({ children, inputId, outputId }: Props) {
           output,
           input.name.includes('Mini') ? 'mini' : 'regular',
         );
-        setHardwareController(controller);
+        controllerSurfaceGroup.setHardwareController(controller);
       } else {
         if (hardwareController) {
-          console.log('setting hardware controller to null');
-          setHardwareController(null);
+          console.log(
+            'selected hardware is not a launchkey; setting hardware controller to null',
+          );
+          controllerSurfaceGroup.setHardwareController(null);
         }
       }
     }
@@ -71,7 +79,14 @@ export function MIDIControllerProvider({ children, inputId, outputId }: Props) {
   // }, [hardwareController]);
 
   return (
-    <MIDIControllerContext.Provider value={{ controller: hardwareController }}>
+    <MIDIControllerContext.Provider
+      value={{
+        controller: controllerSurfaceGroup,
+        // we can get away with this because the virtual controller isn't
+        // reset after construction
+        virtualController: controllerSurfaceGroup.getVirtualController(),
+      }}
+    >
       {children}
     </MIDIControllerContext.Provider>
   );

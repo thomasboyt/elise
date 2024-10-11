@@ -5,10 +5,14 @@ import { PAD_HOLD_TIME } from '../ui/uiConstants';
 import { getHeldStepIndex } from '../ui/getHeldStepIndex';
 import { EliseState, insertNewStep } from '../state/state';
 
-// This is basically stopgap architecture.
-// I think probably I need to add some handlers to the EliseContext for a lot of this logic. But I do also need to figure out how to return side effects, that classic trick.
-// Could also always consider updating controller something that the callsite has to manually account for - everything should be synchronous, at least?
-// or could always try going full react and either sending everything to the controller every update, or get fancy and try to diff it
+// This is basically stopgap non-architecture.
+//
+// I think probably I need to add some handlers to the EliseContext for a lot of
+// this logic. But I do also need to figure out how to return side effects, that
+// classic trick. Could also always consider updating controller something that
+// the callsite has to manually account for - everything should be synchronous,
+// at least? or could always try going full react and either sending everything
+// to the controller every update, or get fancy and try to diff it
 export function ControllerMessageHandler() {
   const controller = useMidiController();
   const { state, update } = useEliseContext();

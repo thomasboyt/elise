@@ -4,7 +4,7 @@ import { ControllerState } from './ControllerState';
 import { UIPage } from '../state/state';
 import { PadColor } from '../ui/uiModels';
 
-type MIDIControllerEvents = {
+export type ControllerSurfaceEvents = {
   padOn: [padIndex: number, velocity: number];
   padOff: [padIndex: number];
   absoluteEncoderUpdated: [encoderIndex: number, value: number];
@@ -39,7 +39,7 @@ type MIDIControllerEvents = {
  * A generic MIDI controller binding, to be subclassed by individual implementations
  * of controllers for hardware/software.
  */
-export abstract class ControllerSurface extends TypedEventEmitter<MIDIControllerEvents> {
+export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurfaceEvents> {
   abstract initController(): void;
   abstract teardownController(): void;
   abstract resetFromState(snapshot: ControllerState): void;
@@ -59,11 +59,3 @@ export abstract class HardwareControllerSurface extends ControllerSurface {
     this.output = output;
   }
 }
-
-// Eventually:
-// This will be an abstraction over a software and hardware controller so that
-// UI doesn't have to bind to both individually. They'll also need to dispatch
-// changes to each other, as if they came from the main UI being interacted
-// with.
-// export class ControllerSurfaceGroup extends ControllerSurface {
-// }
