@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "events": "^3.3.0",
+    "immer": "^10.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "use-immer": "^0.10.0",
     "webmidi": "^3.1.11"
   },
   "devDependencies": {

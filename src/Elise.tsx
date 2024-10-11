@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { NoteMessageEvent, WebMidi } from 'webmidi';
 import * as LaunchkeyMIDIConstants from './controllers/launchkey/LaunchkeyConstants';
+import { ControllerSurface } from './controllers/ControllerSurface';
 
 interface Props {
-  inputId: string;
-  outputId: string;
+  controller: ControllerSurface;
 }
 
 export function Elise(props: Props) {

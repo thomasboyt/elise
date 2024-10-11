@@ -21,7 +21,6 @@ const drumModeNoteToPadIndex = reverseMap(padIndexToDrumModeNote);
 export const DawModePad = {
   fromNote(note: number): number {
     const index = dawModeNoteToPadIndex.get(note);
-    console.log(dawModeNoteToPadIndex);
     if (index === undefined) {
       throw new Error(`Could not get pad index from DAW mode pad note ${note}`);
     }
@@ -104,6 +103,7 @@ export function getSysExPrefix(sku: LaunchkeySkuType): number[] {
 // We use these instead of custom RGB so we can use flashing/pulsing states
 export const padColors: Record<PadColor, number> = {
   off: 0,
+  white: 3,
   red: 5,
   green: 17,
   blue: 37,

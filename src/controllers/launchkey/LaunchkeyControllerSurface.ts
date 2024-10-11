@@ -16,8 +16,8 @@ import {
   relativeEncoderCcOffset,
 } from './LaunchkeyConstants';
 import { PadColor } from '../../util/PadColor';
-import { UIPage } from '../../util/UIPage';
-import { ControllerStateSnapshot } from '../ControllerState';
+import { ControllerState } from '../ControllerState';
+import { UIPage } from '../../state/state';
 
 export class LaunchkeyControllerSurface extends HardwareControllerSurface {
   private sku: LaunchkeySkuType;
@@ -43,6 +43,7 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
 
     const initMsg = launchkeySysexMessageFactories.enableDawMode();
     this.sendRawMessage(initMsg);
+
     const nameDawModeMsg = launchkeySysexMessageFactories.setDisplayText(
       this.sku,
       messageTargets.dawModeLabel,
@@ -50,6 +51,9 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
       'Elise',
     );
     this.sendRawMessage(nameDawModeMsg);
+
+    // Page 22: Enable "DAW Performance note redirect (When On, Keybed notes go to DAW)"
+    this.output.channels[7].sendControlChange(76, 127);
 
     this.padMode = 'daw';
     this.encoderMode = 'plugin';
@@ -61,13 +65,20 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     this.sendRawMessage(launchkeySysexMessageFactories.disableDawMode());
   }
 
-  resetFromState(snapshot: ControllerStateSnapshot): void {
+  resetFromState(snapshot: ControllerState): void {
     this.log('Reset from state');
     this.changePage(snapshot.page);
     for (let idx = 0; idx < snapshot.encoders.length; idx++) {
-      const { name, value } = snapshot.encoders[idx];
-      this.updateEncoderName(idx, name);
-      this.updateEncoderValue(idx, value);
+      const encoder = snapshot.encoders[idx];
+      if (encoder) {
+        const { name, value } = encoder;
+        this.updateEncoderName(idx, name);
+        // TODO: "disabled mode"
+        this.updateEncoderValue(idx, value ?? 0);
+      } else {
+        // TODO: "disabled mode"
+        // this.updateEncoderDisable()
+      }
     }
     for (let idx = 0; idx < snapshot.pads.length; idx++) {
       this.updatePadColor(idx, snapshot.pads[idx]);
@@ -76,9 +87,16 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
 
   changePage(page: UIPage): void {
     this.logOutgoing('Change page', page);
-    // TODO
+    // TODO: eventually we'll have Mixer/Sends pages that
+    // we'll want to update on the pad UI here, I guess?
   }
 
+  /**
+   * Set the color of a given pad.
+   *
+   * @param padIndex 0-15, left to right and top to bottom.
+   * @param color One of the supported pad colors.
+   */
   updatePadColor(padIndex: number, color: PadColor): void {
     if (this.padMode === 'daw') {
       const note = DawModePad.toNote(padIndex);
@@ -95,6 +113,12 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     }
   }
 
+  /**
+   * Set the displayed name on the controller for a given encoder.
+   *
+   * @param encoderIndex 0-8, left to right.
+   * @param name The displayed name.
+   */
   updateEncoderName(encoderIndex: number, name: string): void {
     this.logOutgoing('Set encoder name ', encoderIndex, name);
     this.sendRawMessage(
@@ -107,6 +131,12 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     );
   }
 
+  /**
+   * Set the value on the controller for a given encoder.
+   *
+   * @param encoderIndex 0-8, left to right.
+   * @param value The value of the encoder.
+   */
   updateEncoderValue(encoderIndex: number, value: number): void {
     let midiCc;
     if (
@@ -130,8 +160,9 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
 
   private registerEventListeners() {
     this.log('Registered event listeners');
-    this.input.channels[1].addListener('noteon', this.handleDawModePadNote);
-    this.input.channels[10].addListener('noteon', this.handleDrumModePadNote);
+    this.input.channels[1].addListener('noteon', this.handleDawModePadNoteOn);
+    this.input.channels[1].addListener('noteoff', this.handleDawModePadNoteOff);
+    this.input.channels[10].addListener('noteon', this.handleDrumModePadNoteOn);
     this.input.channels[7].addListener(
       'controlchange',
       this.handleControlChangeCh7,
@@ -144,10 +175,13 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
 
   private unregisterEventListeners() {
     this.log('Unregistered event listeners');
-    this.input.channels[1].removeListener('noteon', this.handleDawModePadNote);
+    this.input.channels[1].removeListener(
+      'noteon',
+      this.handleDawModePadNoteOn,
+    );
     this.input.channels[10].removeListener(
       'noteon',
-      this.handleDrumModePadNote,
+      this.handleDrumModePadNoteOff,
     );
     this.input.channels[7].removeListener(
       'controlchange',
@@ -159,16 +193,28 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     );
   }
 
-  private handleDawModePadNote = (e: WebMidi.NoteMessageEvent) => {
+  private handleDawModePadNoteOn = (e: WebMidi.NoteMessageEvent) => {
     const padIndex = DawModePad.fromNote(e.note.number);
-    this.logIncoming('Pad DAW mode note', padIndex, e.note.rawAttack);
-    this.emit('padPressed', padIndex, e.note.rawAttack);
+    this.logIncoming('Pad DAW mode note on', padIndex, e.note.rawAttack);
+    this.emit('padOn', padIndex, e.note.rawAttack);
   };
 
-  private handleDrumModePadNote = (e: WebMidi.NoteMessageEvent) => {
+  private handleDawModePadNoteOff = (e: WebMidi.NoteMessageEvent) => {
+    const padIndex = DawModePad.fromNote(e.note.number);
+    this.logIncoming('Pad DAW mode note off', padIndex);
+    this.emit('padOff', padIndex);
+  };
+
+  private handleDrumModePadNoteOn = (e: WebMidi.NoteMessageEvent) => {
     const padIndex = DrumModePad.fromNote(e.note.number);
-    this.logIncoming('Pad drum mode note', padIndex, e.note.rawAttack);
-    this.emit('padPressed', padIndex, e.note.rawAttack);
+    this.logIncoming('Pad drum mode note on', padIndex, e.note.rawAttack);
+    this.emit('padOn', padIndex, e.note.rawAttack);
+  };
+
+  private handleDrumModePadNoteOff = (e: WebMidi.NoteMessageEvent) => {
+    const padIndex = DrumModePad.fromNote(e.note.number);
+    this.logIncoming('Pad drum mode note off', padIndex);
+    this.emit('padOff', padIndex);
   };
 
   private handleControlChangeCh7 = (e: WebMidi.ControlChangeMessageEvent) => {

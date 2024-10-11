@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { MessageEvent } from 'webmidi';
-import { SendControls } from './SendControls';
 import { useMidiController } from './controllers/useMidiController';
 import { HardwareControllerSurface } from './controllers/ControllerSurface';
 
-export function DebugUi() {
+export function DebugLog() {
   const controller = useMidiController();
   const [messageLog, setMessageLog] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
@@ -36,10 +35,6 @@ export function DebugUi() {
 
   return (
     <>
-      <div>
-        <SendControls />
-      </div>
-
       <div
         ref={logRef}
         style={{ display: 'block', height: '300px', overflowY: 'scroll' }}

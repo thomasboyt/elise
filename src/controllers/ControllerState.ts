@@ -4,20 +4,41 @@
  * controller state.
  */
 
+import { EliseState, UIPage } from '../state/state';
+import { getCurrentPageEncoders } from '../ui/getCurrentPageEncoders';
+import { Encoder } from '../ui/uiModels';
 import { PadColor } from '../util/PadColor';
-import { UIPage } from '../util/UIPage';
 
-export interface ControllerStateSnapshot {
+export interface ControllerState {
   page: UIPage;
-  encoders: { name: string; value: number }[];
+  encoders: (Encoder | null)[];
   pads: PadColor[];
 }
 
-export const defaultControllerState: ControllerStateSnapshot = {
-  page: 'one',
-  encoders: [...new Array(8)].map((_, idx) => ({
-    name: `Encoder ${idx}`,
-    value: Math.round(Math.random() * 127),
-  })),
-  pads: [...new Array(16)].map(() => 'green'),
-};
+export function getControllerState(state: EliseState): ControllerState {
+  const { currentPattern, currentTrack, currentPage } = state.ui;
+
+  // TODO: paint pads differently when holding func to select track
+  // TODO: paint pads differently when holding > to select pattern
+  // TODO: paint pads differently for drum mode!
+
+  const pattern = state.project.patterns[currentPattern];
+  const track = pattern.tracks[currentTrack];
+  const steps = track.steps;
+
+  const pads: PadColor[] = steps.map((step): PadColor => {
+    if (!step) {
+      return 'off';
+    }
+    // TODO: different colors for different types of notes?
+    return 'green';
+  });
+
+  const encoders = getCurrentPageEncoders(state);
+
+  return {
+    page: currentPage,
+    encoders,
+    pads,
+  };
+}

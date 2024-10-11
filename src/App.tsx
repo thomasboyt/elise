@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Input, Output, PortEvent, WebMidi } from 'webmidi';
 import { EliseMIDIDevice } from './types';
 import { DeviceSelector } from './DeviceSelector';
-import { DebugUi } from './DebugUi';
-// import { Elise } from './Elise';
+import { DebugLog } from './DebugLog';
 import { MIDIControllerProvider } from './controllers/MIDIControllerContext';
+import { DebugControls } from './DebugControls';
+import { EliseContextProvider } from './state/EliseContextProvider';
+import { StateTree } from './StateTree';
+import { ControllerMessageHandler } from './controllers/ControllerMessageHandler';
 
 function addDeviceIfNotPresent(
   devices: EliseMIDIDevice[],
@@ -140,11 +143,13 @@ function App() {
           inputId={selectedInputDeviceId}
           outputId={selectedOutputDeviceId}
         >
-          {/* <Elise
-            inputId={selectedInputDeviceId}
-            outputId={selectedOutputDeviceId}
-          /> */}
-          <DebugUi />
+          <EliseContextProvider>
+            {/* <EliseUI /> */}
+            <ControllerMessageHandler />
+            <DebugControls />
+            <DebugLog />
+            <StateTree />
+          </EliseContextProvider>
         </MIDIControllerProvider>
       )}
     </>
