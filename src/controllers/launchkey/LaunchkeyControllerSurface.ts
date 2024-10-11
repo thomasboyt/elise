@@ -15,9 +15,9 @@ import {
   PadMode,
   relativeEncoderCcOffset,
 } from './LaunchkeyConstants';
-import { PadColor } from '../../util/PadColor';
 import { ControllerState } from '../ControllerState';
 import { UIPage } from '../../state/state';
+import { PadColor } from '../../ui/uiModels';
 
 export class LaunchkeyControllerSurface extends HardwareControllerSurface {
   private sku: LaunchkeySkuType;

@@ -6,8 +6,7 @@
 
 import { EliseState, UIPage } from '../state/state';
 import { getCurrentPageEncoders } from '../ui/getCurrentPageEncoders';
-import { Encoder } from '../ui/uiModels';
-import { PadColor } from '../util/PadColor';
+import { Encoder, PadColor } from '../ui/uiModels';
 
 export interface ControllerState {
   page: UIPage;

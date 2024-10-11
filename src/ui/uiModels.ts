@@ -1,5 +1,6 @@
 export type EncoderDisplayType = 'number' | 'percent';
 
+export type PadColor = 'off' | 'red' | 'green' | 'blue' | 'white';
 export interface Encoder {
   name: string;
   // A null value means the parameter is disabled and any inputs

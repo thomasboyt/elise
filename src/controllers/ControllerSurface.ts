@@ -1,8 +1,8 @@
 import * as WebMidi from 'webmidi';
-import { PadColor } from '../util/PadColor';
 import { TypedEventEmitter } from '../util/TypedEventEmitter';
 import { ControllerState } from './ControllerState';
 import { UIPage } from '../state/state';
+import { PadColor } from '../ui/uiModels';
 
 type MIDIControllerEvents = {
   padOn: [padIndex: number, velocity: number];

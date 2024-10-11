@@ -1,4 +1,4 @@
-import { PadColor } from '../../util/PadColor';
+import { PadColor } from '../../ui/uiModels';
 
 function arrayToMapByIndex<T>(array: T[]): Map<number, T> {
   return new Map(array.map((v, k) => [k, v]));
