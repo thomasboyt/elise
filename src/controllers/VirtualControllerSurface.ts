@@ -58,7 +58,7 @@ export class VirtualControllerSurface extends ControllerSurface {
 
   teardownController(): void {}
 
-  changePage(): void {
+  changeEncoderBank(): void {
     // no-op since we don't have a visual display of this
   }
 

@@ -17,7 +17,7 @@ import {
   regularButtonCCs,
   relativeEncoderCcOffset,
 } from './LaunchkeyConstants';
-import { UIPage } from '../../state/state';
+import { EncoderBank } from '../../state/state';
 import { PadColor, PadMode } from '../../ui/uiModels';
 
 export class LaunchkeyControllerSurface extends HardwareControllerSurface {
@@ -70,10 +70,9 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     this.sendRawMessage(launchkeySysexMessageFactories.disableDawMode());
   }
 
-  changePage(page: UIPage): void {
-    this.logOutgoing('Change page', page);
-    // TODO: eventually we'll have Mixer/Sends pages that
-    // we'll want to update on the pad UI here, I guess?
+  changeEncoderBank(encoderBank: EncoderBank): void {
+    this.logOutgoing('Change encoder bank', encoderBank);
+    // TODO: set some kind of display indicator?
   }
 
   changePadMode(padMode: PadMode): void {

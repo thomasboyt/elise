@@ -47,6 +47,8 @@ export function changeScene(update: Updater<EliseState>, sceneIndex: number) {
   update((draft) => {
     if (!getScene(draft, sceneIndex)) {
       draft.project.scenes[sceneIndex] = createEmptyScene();
+      draft.project.scenes[sceneIndex]!.tracks[draft.ui.currentTrack] =
+        createEmptyTrack();
     }
     draft.ui.currentScene = sceneIndex;
   });
@@ -88,5 +90,91 @@ export function removeStep(
 export function enableProtectHeldPadDeletion(update: Updater<EliseState>) {
   update((draft) => {
     draft.ui.protectHeldPadDeletion = true;
+  });
+}
+
+/* ---
+ * Update steps
+ * ---
+ */
+
+export function addNoteToStep(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+  note: number,
+) {
+  update((draft) => {
+    const notes =
+      draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex]!
+        .notes;
+    if (notes.some((existing) => existing === note)) {
+      return;
+    }
+    notes.push(note);
+  });
+}
+
+export function removeNoteFromStep(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+  note: number,
+) {
+  update((draft) => {
+    const notes =
+      draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex]!
+        .notes;
+    const noteIndex = notes.findIndex((existing) => existing === note);
+    if (noteIndex === -1) {
+      return;
+    }
+    notes.splice(noteIndex, 1);
+  });
+}
+
+// TODO: maybe use some currying for less boilerplate here?
+
+export function setStepVelocity(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+  velocity: number,
+) {
+  update((draft) => {
+    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[
+      stepIndex
+    ]!.velocity = velocity;
+  });
+}
+
+export function setStepOffset(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+  offset: number,
+) {
+  update((draft) => {
+    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[
+      stepIndex
+    ]!.offset = offset;
+  });
+}
+
+export function setStepLength(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+  length: number,
+) {
+  update((draft) => {
+    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[
+      stepIndex
+    ]!.gate = length;
   });
 }

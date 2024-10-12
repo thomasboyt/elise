@@ -91,7 +91,7 @@ export interface ProjectStorage {
 // UI concerns
 // ------------------
 
-export type UIPage = 'note' | 'parameters' | 'lfo';
+export type EncoderBank = 'note' | 'parameters' | 'lfo' | 'global';
 
 export interface NextStepSettings {
   notes: number[];
@@ -109,6 +109,7 @@ export interface NextStepSettings {
  */
 export interface UIState {
   padMode: PadMode;
+  encoderBank: EncoderBank;
 
   heldPad: number | null;
   heldPadStartTime: number | null; // used to distinguish between "toggle" and "hold"
@@ -117,7 +118,6 @@ export interface UIState {
   // UI navigation
   currentTrack: number;
   currentScene: number;
-  currentPage: UIPage;
   currentStepsPage: number;
 
   // The settings that the next note will be placed at.
@@ -170,12 +170,12 @@ export function createDefaultProjectStorage(): ProjectStorage {
 export function createDefaultUIState(): UIState {
   return {
     padMode: 'clip',
+    encoderBank: 'note',
 
     heldPad: null,
     heldPadStartTime: null,
     protectHeldPadDeletion: false,
 
-    currentPage: 'note',
     currentScene: 0,
     currentTrack: 0,
     currentStepsPage: 0,

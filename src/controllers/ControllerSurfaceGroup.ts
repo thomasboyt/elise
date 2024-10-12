@@ -1,4 +1,4 @@
-import { UIPage } from '../state/state';
+import { EncoderBank } from '../state/state';
 import { PadColor, PadMode } from '../ui/uiModels';
 import { ControllerState } from './ControllerState';
 import {
@@ -49,8 +49,8 @@ export class ControllerSurfaceGroup extends ControllerSurface {
     this.eachController((c) => c.teardownController());
   };
 
-  changePage = (page: UIPage) => {
-    this.eachController((c) => c.changePage(page));
+  changeEncoderBank = (encoderBank: EncoderBank) => {
+    this.eachController((c) => c.changeEncoderBank(encoderBank));
   };
 
   changePadMode = (padMode: PadMode) => {

@@ -1,6 +1,6 @@
 import { getSceneOrThrow, getTrackOrThrow } from '../state/accessors';
-import { EliseState, UIPage } from '../state/state';
-import { getCurrentPageEncoders } from '../ui/getCurrentPageEncoders';
+import { EliseState, EncoderBank } from '../state/state';
+import { getCurrentEncoders } from '../ui/getCurrentEncoders';
 import { Encoder, PadColor, PadMode } from '../ui/uiModels';
 import { extendArrayToLength } from '../util/extendArrayToLength';
 
@@ -10,7 +10,7 @@ import { extendArrayToLength } from '../util/extendArrayToLength';
  * controller state.
  */
 export interface ControllerState {
-  page: UIPage;
+  encoderBank: EncoderBank;
   encoders: (Encoder | null)[];
   pads: PadColor[];
   /**
@@ -81,12 +81,12 @@ function getPadColors(state: EliseState): PadColor[] {
 }
 
 export function getControllerState(state: EliseState): ControllerState {
-  const { currentPage, padMode } = state.ui;
+  const { encoderBank, padMode } = state.ui;
   const pads = getPadColors(state);
-  const encoders = getCurrentPageEncoders(state);
+  const encoders = getCurrentEncoders(state);
 
   return {
-    page: currentPage,
+    encoderBank,
     encoders,
     pads,
     padMode,
@@ -96,7 +96,7 @@ export function getControllerState(state: EliseState): ControllerState {
 export function initControllerState(): ControllerState {
   return {
     padMode: 'clip',
-    page: 'note',
+    encoderBank: 'note',
     encoders: new Array(8).fill(null),
     pads: new Array(16).fill('off'),
   };

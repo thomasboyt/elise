@@ -1,7 +1,7 @@
 import * as WebMidi from 'webmidi';
 import { TypedEventEmitter } from '../util/TypedEventEmitter';
 import { ControllerState, initControllerState } from './ControllerState';
-import { UIPage } from '../state/state';
+import { EncoderBank } from '../state/state';
 import { PadColor, PadMode } from '../ui/uiModels';
 
 export type ControllerSurfaceEvents = {
@@ -61,7 +61,7 @@ export const controllerSurfaceEventNames: Record<
 export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurfaceEvents> {
   abstract initController(): void;
   abstract teardownController(): void;
-  abstract changePage(page: UIPage): void;
+  abstract changeEncoderBank(encoderBank: EncoderBank): void;
   abstract changePadMode(padMode: PadMode): void;
   abstract updatePadColor(padIndex: number, color: PadColor): void;
   abstract updateEncoderName(encoderIndex: number, name: string): void;
