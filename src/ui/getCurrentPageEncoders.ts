@@ -1,3 +1,4 @@
+import { getTrackOrThrow } from '../state/accessors';
 import { EliseState } from '../state/state';
 import { parameterPlockKey } from '../state/stateUtils';
 import { getHeldStepIndex } from './getHeldStepIndex';
@@ -11,7 +12,7 @@ import {
 export function getCurrentPageEncoders(state: EliseState): (Encoder | null)[] {
   const { currentPage, currentScene, currentTrack, nextStepSettings, padMode } =
     state.ui;
-  const track = state.project.scenes[currentScene].tracks[currentTrack];
+  const track = getTrackOrThrow(state, currentScene, currentTrack);
 
   const heldStep = padMode === 'clip' ? getHeldStepIndex(state) : null;
   const currentNote = heldStep !== null ? track.steps[heldStep] : null;

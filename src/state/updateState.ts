@@ -1,6 +1,12 @@
 import { Updater } from 'use-immer';
-import { EliseState, MidiStep } from './state';
+import {
+  createEmptyScene,
+  createEmptyTrack,
+  EliseState,
+  MidiStep,
+} from './state';
 import { PadMode } from '../ui/uiModels';
+import { getScene, getTrack } from './accessors';
 
 export function setHeldPad(
   update: Updater<EliseState>,
@@ -28,12 +34,20 @@ export function changePadMode(update: Updater<EliseState>, mode: PadMode) {
 
 export function changeTrack(update: Updater<EliseState>, trackIndex: number) {
   update((draft) => {
+    const { currentScene } = draft.ui;
+    if (!getTrack(draft, currentScene, trackIndex)) {
+      draft.project.scenes[currentScene]!.tracks[trackIndex] =
+        createEmptyTrack();
+    }
     draft.ui.currentTrack = trackIndex;
   });
 }
 
 export function changeScene(update: Updater<EliseState>, sceneIndex: number) {
   update((draft) => {
+    if (!getScene(draft, sceneIndex)) {
+      draft.project.scenes[sceneIndex] = createEmptyScene();
+    }
     draft.ui.currentScene = sceneIndex;
   });
 }
@@ -53,7 +67,8 @@ export function insertNewStep(
       velocity: draft.ui.nextStepSettings.velocity,
     };
 
-    draft.project.scenes[sceneIndex].tracks[trackIndex].steps[stepIndex] = step;
+    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex] =
+      step;
     draft.ui.protectHeldPadDeletion = true;
   });
 }
@@ -65,7 +80,8 @@ export function removeStep(
   stepIndex: number,
 ) {
   update((draft) => {
-    draft.project.scenes[sceneIndex].tracks[trackIndex].steps[stepIndex] = null;
+    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex] =
+      null;
   });
 }
 

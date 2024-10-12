@@ -15,6 +15,7 @@ import {
   setHeldPad,
   unsetHeldPad,
 } from '../state/updateState';
+import { getTrackOrThrow } from '../state/accessors';
 
 // This is basically stopgap non-architecture.
 //
@@ -54,9 +55,11 @@ export function ControllerMessageHandler() {
         const { currentTrack, currentScene } = stateRef.current.ui;
 
         const stepIndex = getStepIndexFromPad(stateRef.current, padIndex);
-        const existingStep =
-          stateRef.current.project.scenes[currentScene].tracks[currentTrack]
-            .steps[stepIndex!];
+        const existingStep = getTrackOrThrow(
+          stateRef.current,
+          currentScene,
+          currentTrack,
+        ).steps[stepIndex!];
 
         if (!existingStep) {
           insertNewStep(update, currentScene, currentTrack, stepIndex);

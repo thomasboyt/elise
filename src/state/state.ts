@@ -1,4 +1,5 @@
 import { PadMode } from '../ui/uiModels';
+import { extendArrayToLength } from '../util/extendArrayToLength';
 
 interface MidiCcParameter {
   type: 'midiCc';
@@ -61,7 +62,7 @@ export interface MidiStep {
   offset: number;
 }
 
-interface MidiPatternTrack {
+export interface MidiClipTrack {
   // TODO: should steps lose their p-lock values when deactivated?
   steps: (MidiStep | null)[];
   pageLength: number;
@@ -73,15 +74,14 @@ interface MidiPatternTrack {
   swing: number;
 }
 
-interface Scene {
-  tracks: MidiPatternTrack[];
-  // these are settings that may not be exposed in pages, but only changed
-  // via touch screen
-  bpm: number;
+export interface Scene {
+  tracks: (MidiClipTrack | null)[];
+  bpmOverride: number | null;
 }
 
 export interface ProjectStorage {
-  scenes: Scene[];
+  scenes: (Scene | null)[];
+  bpm: number;
 }
 
 // ------------------
@@ -121,7 +121,7 @@ export interface EliseState {
   ui: UIState;
 }
 
-export function createEmptyTrack(): MidiPatternTrack {
+export function createEmptyTrack(): MidiClipTrack {
   return {
     lfo: null,
     parameterConfiguration: {
@@ -137,20 +137,23 @@ export function createEmptyTrack(): MidiPatternTrack {
       ],
     },
     parameterValues: [null],
-    steps: [...new Array(16)].map(() => null),
+    steps: new Array(16).fill(null),
     swing: 0,
     pageLength: 16,
   };
 }
 
+export function createEmptyScene(): Scene {
+  return {
+    bpmOverride: null,
+    tracks: extendArrayToLength([createEmptyTrack()], 16, null),
+  };
+}
+
 export function createDefaultProjectStorage(): ProjectStorage {
   return {
-    scenes: [
-      {
-        bpm: 120,
-        tracks: [createEmptyTrack()],
-      },
-    ],
+    bpm: 120,
+    scenes: extendArrayToLength([createEmptyScene()], 16, null),
   };
 }
 

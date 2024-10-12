@@ -1,6 +1,8 @@
+import { getSceneOrThrow, getTrackOrThrow } from '../state/accessors';
 import { EliseState, UIPage } from '../state/state';
 import { getCurrentPageEncoders } from '../ui/getCurrentPageEncoders';
 import { Encoder, PadColor, PadMode } from '../ui/uiModels';
+import { extendArrayToLength } from '../util/extendArrayToLength';
 
 /**
  * The ControllerState is a "snapshot" that can be computed from the overall
@@ -26,15 +28,6 @@ export interface ControllerState {
   // TODO: current bar (for display state)
 }
 
-function extendArrayToLength<T>(arr: T[], length: number, fill: T) {
-  if (arr.length >= length) {
-    return arr;
-  }
-  const diff = length - arr.length;
-  const fillItems = new Array(diff).fill(fill);
-  return arr.concat(fillItems);
-}
-
 function getPadColors(state: EliseState): PadColor[] {
   const { currentScene, currentTrack, currentStepsPage, padMode } = state.ui;
 
@@ -44,8 +37,7 @@ function getPadColors(state: EliseState): PadColor[] {
   // so might need to get fancy.
 
   if (padMode === 'clip') {
-    const scene = state.project.scenes[currentScene];
-    const track = scene.tracks[currentTrack];
+    const track = getTrackOrThrow(state, currentScene, currentTrack);
     const offset = currentStepsPage * track.pageLength;
     const steps = track.steps.slice(offset, offset + track.pageLength);
 
@@ -65,16 +57,20 @@ function getPadColors(state: EliseState): PadColor[] {
     });
     return extendArrayToLength(pads, 16, 'off');
   } else if (padMode === 'track') {
-    const scene = state.project.scenes[currentScene];
-    const pads = scene.tracks.map(
-      (_track, idx): PadColor => (idx === currentTrack ? 'green' : 'blue'),
-    );
-    return extendArrayToLength(pads, 16, 'off');
+    const scene = getSceneOrThrow(state, currentScene);
+    return scene.tracks.map((track, idx) => {
+      if (idx === currentTrack) {
+        return 'green';
+      }
+      return track === null ? 'off' : 'blue';
+    });
   } else if (padMode === 'scene') {
-    const pads = state.project.scenes.map(
-      (_track, idx): PadColor => (idx === currentScene ? 'green' : 'blue'),
-    );
-    return extendArrayToLength(pads, 16, 'off');
+    return state.project.scenes.map((scene, idx) => {
+      if (idx === currentScene) {
+        return 'green';
+      }
+      return scene === null ? 'off' : 'blue';
+    });
   }
 
   // TODO: mute mode

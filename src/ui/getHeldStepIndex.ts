@@ -1,3 +1,4 @@
+import { getTrackOrThrow } from '../state/accessors';
 import { EliseState } from '../state/state';
 
 export function getHeldStepIndex(state: EliseState): number | null {
@@ -21,7 +22,7 @@ export function getStepIndexFromPad(
   }
 
   const { currentScene, currentTrack, currentStepsPage } = state.ui;
-  const track = state.project.scenes[currentScene].tracks[currentTrack];
+  const track = getTrackOrThrow(state, currentScene, currentTrack);
   const offset = currentStepsPage * track.pageLength;
   return offset + padIndex;
 }
