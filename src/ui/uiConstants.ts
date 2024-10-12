@@ -1,1 +1,1 @@
-export const PAD_HOLD_TIME = 500;
+export const PAD_HOLD_TIME = 200;

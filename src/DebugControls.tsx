@@ -8,13 +8,13 @@ export function DebugControls() {
 
   return (
     <div>
-      <button onClick={() => controller?.initController()}>
-        Init controller
-      </button>
       <button
-        onClick={() => controller?.handleStateUpdate(getControllerState(state))}
+        onClick={() => {
+          controller?.initController();
+          controller?.resetState(getControllerState(state));
+        }}
       >
-        Send controller state
+        Init controller
       </button>
       <button onClick={() => controller?.teardownController()}>
         Tear down controller

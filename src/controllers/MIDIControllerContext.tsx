@@ -1,82 +1,105 @@
-import { createContext, ReactNode, useState } from 'react';
-import { ControllerSurface } from './ControllerSurface';
-import { LaunchkeyControllerSurface } from './launchkey/LaunchkeyControllerSurface';
+import { createContext, ReactNode, useEffect, useRef, useState } from 'react';
 import { WebMidi } from 'webmidi';
+import { IControllerSurface } from './ControllerSurface';
+import { LaunchkeyControllerSurface } from './launchkey/LaunchkeyControllerSurface';
 import { ControllerSurfaceGroup } from './ControllerSurfaceGroup';
 import { VirtualControllerSurface } from './VirtualControllerSurface';
+import { useEliseContext } from '../state/useEliseContext';
+import { getControllerState } from './ControllerState';
 
 interface MIDIControllerContextShape {
-  controller: ControllerSurface | null;
+  controller: IControllerSurface | null;
   virtualController: VirtualControllerSurface | null;
+  hardwareConnected: boolean;
 }
 
 export const MIDIControllerContext = createContext<MIDIControllerContextShape>({
   controller: null,
   virtualController: null,
+  hardwareConnected: false,
 });
 
 interface Props {
   children: ReactNode;
-  inputId: string | null;
-  outputId: string | null;
 }
 
-export function MIDIControllerProvider({ children, inputId, outputId }: Props) {
-  // const [virtualController, setVirtualController] = useState(
-  //   () => new VirtualControllerSurface(),
-  // );
-  // const [hardwareController, setHardwareController] =
-  //   useState<HardwareControllerSurface | null>(null);
+const LAUNCHKEY_MK4_49_MIDI_INPUT = 'Launchkey MK4 49 MIDI';
+const LAUNCHKEY_MK4_49_DAW_INPUT = 'MIDIIN2 (Launchkey MK4 49 MIDI)';
+const LAUNCHKEY_MK4_49_MIDI_OUTPUT = 'Launchkey MK4 49 MIDI';
+const LAUNCHKEY_MK4_49_DAW_OUTPUT = 'MIDIOUT2 (Launchkey MK4 49 MIDI';
 
+function getLaunchkeyDevices() {
+  return {
+    midiInput: WebMidi.inputs.find(
+      (port) => port.name === LAUNCHKEY_MK4_49_MIDI_INPUT,
+    ),
+    midiOutput: WebMidi.outputs.find(
+      (port) => port.name === LAUNCHKEY_MK4_49_MIDI_OUTPUT,
+    ),
+    dawInput: WebMidi.inputs.find(
+      (port) => port.name === LAUNCHKEY_MK4_49_DAW_INPUT,
+    ),
+    dawOutput: WebMidi.outputs.find(
+      (port) => port.name === LAUNCHKEY_MK4_49_DAW_OUTPUT,
+    ),
+  };
+}
+
+export function MIDIControllerProvider({ children }: Props) {
+  const { state } = useEliseContext();
+  const stateRef = useRef(state);
+  useEffect(() => {
+    stateRef.current = state;
+  });
   const [controllerSurfaceGroup] = useState(() => new ControllerSurfaceGroup());
+  const [hardwareConnected, setHardwareConnected] = useState(false);
 
-  if (inputId && outputId) {
-    const hardwareController = controllerSurfaceGroup.getHardwareController();
-    if (
-      !hardwareController ||
-      hardwareController.input.id !== inputId ||
-      hardwareController.output.id !== outputId
-    ) {
-      const input = WebMidi.getInputById(inputId);
-      const output = WebMidi.getOutputById(outputId);
-      if (
-        input &&
-        output &&
-        input.name.includes('Launchkey') &&
-        input.name.includes('MIDIIN2') &&
-        output.name.includes('Launchkey') &&
-        output.name.includes('MIDIOUT2')
-      ) {
-        const controller = new LaunchkeyControllerSurface(
-          input,
-          output,
-          input.name.includes('Mini') ? 'mini' : 'regular',
-        );
-        controllerSurfaceGroup.setHardwareController(controller);
-      } else {
-        if (hardwareController) {
-          console.log(
-            'selected hardware is not a launchkey; setting hardware controller to null',
+  useEffect(() => {
+    function createLaunchkeyHardwareControllerIfConnected() {
+      const { midiInput, midiOutput, dawInput, dawOutput } =
+        getLaunchkeyDevices();
+      if (midiInput && midiOutput && dawInput && dawOutput) {
+        if (!controllerSurfaceGroup.getHardwareController()) {
+          const controller = new LaunchkeyControllerSurface(
+            midiInput,
+            dawInput,
+            midiOutput,
+            dawOutput,
+            'regular',
           );
-          controllerSurfaceGroup.setHardwareController(null);
+          controllerSurfaceGroup.setHardwareController(controller);
+          controller.initController();
+          controller.resetState(getControllerState(stateRef.current));
+          setHardwareConnected(true);
         }
       }
     }
-  }
 
-  // TODO: This bootup process causes some major confusion, not sure what we need here yet.
-  // Seems like we get weirdness around the enter/exit/enter process happening very quickly.
-  // Could be some kind of debounce-y solution.
-  // Also we might not actually want to re-init controller state here?
-  //
-  // Putting this in a useEffect *should* mean this cleanup is called if either
-  // (a) hardwareController changes or (b) if the component is unmounted.
-  // useEffect(() => {
-  //   hardwareController?.initController();
-  //   return () => {
-  //     hardwareController?.teardownController();
-  //   };
-  // }, [hardwareController]);
+    createLaunchkeyHardwareControllerIfConnected();
+
+    function handleWebMidiConnected() {
+      createLaunchkeyHardwareControllerIfConnected();
+    }
+
+    function handleWebMidiDisconnected() {
+      const controller = controllerSurfaceGroup.getHardwareController();
+      const { midiInput, midiOutput, dawInput, dawOutput } =
+        getLaunchkeyDevices();
+      if (controller && !(midiInput && midiOutput && dawInput && dawOutput)) {
+        controller.teardownController();
+        controllerSurfaceGroup.setHardwareController(null);
+        setHardwareConnected(false);
+      }
+    }
+
+    WebMidi.addListener('connected', handleWebMidiConnected);
+    WebMidi.addListener('disconnected', handleWebMidiDisconnected);
+
+    return () => {
+      WebMidi.removeListener('connected', handleWebMidiConnected);
+      WebMidi.removeListener('disconnected', handleWebMidiDisconnected);
+    };
+  }, [controllerSurfaceGroup]);
 
   return (
     <MIDIControllerContext.Provider
@@ -85,6 +108,7 @@ export function MIDIControllerProvider({ children, inputId, outputId }: Props) {
         // we can get away with this because the virtual controller isn't
         // reset after construction
         virtualController: controllerSurfaceGroup.getVirtualController(),
+        hardwareConnected,
       }}
     >
       {children}

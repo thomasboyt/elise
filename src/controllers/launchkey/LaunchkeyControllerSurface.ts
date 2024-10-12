@@ -1,5 +1,4 @@
 import * as WebMidi from 'webmidi';
-import { HardwareControllerSurface } from '../ControllerSurface';
 import { launchkeySysexMessageFactories } from './LaunchkeySysex';
 import {
   absoluteEncoderCcOffset,
@@ -19,31 +18,46 @@ import {
 } from './LaunchkeyConstants';
 import { EncoderBank } from '../../state/state';
 import { PadColor, PadMode } from '../../ui/uiModels';
+import { ControllerSurface } from '../ControllerSurface';
 
-export class LaunchkeyControllerSurface extends HardwareControllerSurface {
-  private sku: LaunchkeySkuType;
-  private padMode: PadMode;
+export class LaunchkeyControllerSurface extends ControllerSurface {
+  private initialized = false;
+  private padMode: PadMode = 'clip';
 
   // Launchkey state
-  private launchkeyPadMode: LKPadMode | null;
-  private launchkeyEncoderMode: EncoderMode | null;
+  private launchkeyPadMode: LKPadMode | null = null;
+  private launchkeyEncoderMode: EncoderMode | null = null;
   private funcHeld: boolean = false;
   private launchHeld: boolean = false;
 
+  private midiInput: WebMidi.Input;
+  private dawInput: WebMidi.Input;
+  private midiOutput: WebMidi.Output;
+  private dawOutput: WebMidi.Output;
+  private sku: LaunchkeySkuType;
+
   constructor(
-    input: WebMidi.Input,
-    output: WebMidi.Output,
+    midiInput: WebMidi.Input,
+    dawInput: WebMidi.Input,
+    midiOutput: WebMidi.Output,
+    dawOutput: WebMidi.Output,
     sku: LaunchkeySkuType,
   ) {
-    super(input, output);
+    super();
     this.sku = sku;
-    this.launchkeyPadMode = null;
-    this.launchkeyEncoderMode = null;
-    this.padMode = 'clip';
+    this.midiInput = midiInput;
+    this.dawInput = dawInput;
+    this.midiOutput = midiOutput;
+    this.dawOutput = dawOutput;
   }
 
   initController(): void {
+    if (this.initialized) {
+      return;
+    }
+
     this.log('Initializing');
+    this.initialized = true;
     this.registerEventListeners();
 
     const initMsg = launchkeySysexMessageFactories.enableDawMode();
@@ -57,15 +71,13 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     );
     this.sendRawMessage(nameDawModeMsg);
 
-    // Page 22: Enable "DAW Performance note redirect (When On, Keybed notes go to DAW)"
-    this.output.channels[7].sendControlChange(76, 127);
-
     this.launchkeyPadMode = 'daw';
     this.launchkeyEncoderMode = 'plugin';
   }
 
   teardownController(): void {
     this.log('Teardown');
+    this.initialized = false;
     this.unregisterEventListeners();
     this.sendRawMessage(launchkeySysexMessageFactories.disableDawMode());
   }
@@ -90,13 +102,13 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     if (this.launchkeyPadMode === 'daw') {
       const note = DawModePad.toNote(padIndex);
       this.logOutgoing('Set DAW mode pad', padIndex, color);
-      this.output.channels[1].sendNoteOn(note, {
+      this.dawOutput.channels[1].sendNoteOn(note, {
         rawAttack: padColors[color],
       });
     } else if (this.launchkeyPadMode === 'drum') {
       const note = DrumModePad.toNote(padIndex);
       this.logOutgoing('Set drum mode pad', padIndex, color);
-      this.output.channels[10].sendNoteOn(note, {
+      this.dawOutput.channels[10].sendNoteOn(note, {
         rawAttack: padColors[color],
       });
     }
@@ -140,28 +152,42 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     }
     if (midiCc) {
       this.logOutgoing('Set encoder value ', encoderIndex, value);
-      this.output.channels[16].sendControlChange(midiCc, value);
+      this.dawOutput.channels[16].sendControlChange(midiCc, value);
     }
   }
 
   private sendRawMessage(data: number[]) {
-    this.output.send(data);
+    this.dawOutput.send(data);
   }
+
+  // I hate the boilerplate and having to remember to unregister, but don't know
+  // how to do nice type safety with a list of event listeners or w/e
 
   private registerEventListeners() {
     this.log('Registered event listeners');
-    this.input.channels[1].addListener('noteon', this.handleDawModePadNoteOn);
-    this.input.channels[1].addListener('noteoff', this.handleDawModePadNoteOff);
-    this.input.channels[1].addListener(
+    this.dawInput.addListener('midimessage', this.handleMidiMessage);
+    this.midiInput.addListener('midimessage', this.handleMidiMessage);
+    this.dawInput.channels[1].addListener(
+      'noteon',
+      this.handleDawModePadNoteOn,
+    );
+    this.dawInput.channels[1].addListener(
+      'noteoff',
+      this.handleDawModePadNoteOff,
+    );
+    this.dawInput.channels[1].addListener(
       'controlchange',
       this.handleControlChangeCh1,
     );
-    this.input.channels[10].addListener('noteon', this.handleDrumModePadNoteOn);
-    this.input.channels[7].addListener(
+    this.dawInput.channels[10].addListener(
+      'noteon',
+      this.handleDrumModePadNoteOn,
+    );
+    this.dawInput.channels[7].addListener(
       'controlchange',
       this.handleControlChangeCh7,
     );
-    this.input.channels[16].addListener(
+    this.dawInput.channels[16].addListener(
       'controlchange',
       this.handleControlChangeCh16,
     );
@@ -169,27 +195,39 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
 
   private unregisterEventListeners() {
     this.log('Unregistered event listeners');
-    this.input.channels[1].removeListener(
-      'controlchange',
-      this.handleControlChangeCh1,
-    );
-    this.input.channels[1].removeListener(
+    this.dawInput.removeListener('midimessage', this.handleMidiMessage);
+    this.midiInput.removeListener('midimessage', this.handleMidiMessage);
+    this.dawInput.channels[1].removeListener(
       'noteon',
       this.handleDawModePadNoteOn,
     );
-    this.input.channels[10].removeListener(
+    this.dawInput.channels[1].removeListener(
+      'noteoff',
+      this.handleDawModePadNoteOff,
+    );
+    this.dawInput.channels[1].removeListener(
+      'controlchange',
+      this.handleControlChangeCh1,
+    );
+    this.dawInput.channels[10].removeListener(
       'noteon',
       this.handleDrumModePadNoteOff,
     );
-    this.input.channels[7].removeListener(
+    this.dawInput.channels[7].removeListener(
       'controlchange',
       this.handleControlChangeCh7,
     );
-    this.input.channels[16].removeListener(
+    this.dawInput.channels[16].removeListener(
       'controlchange',
       this.handleControlChangeCh16,
     );
   }
+
+  private handleMidiMessage = (e: WebMidi.MessageEvent) => {
+    console.debug(
+      `MIDI: ${e.port.id}/${e.message.channel} - ${e.message.type} ${e.message.data}`,
+    );
+  };
 
   private handleDawModePadNoteOn = (e: WebMidi.NoteMessageEvent) => {
     const padIndex = DawModePad.fromNote(e.note.number);
@@ -320,10 +358,10 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
   }
 
   private logOutgoing(...args: unknown[]) {
-    console.log('*** Launchkey Controller >>', ...args);
+    console.debug('Launchkey Controller >>', ...args);
   }
 
   private logIncoming(...args: unknown[]) {
-    console.log('*** Launchkey Controller <<', ...args);
+    console.debug('Launchkey Controller <<', ...args);
   }
 }

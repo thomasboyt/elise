@@ -1,9 +1,9 @@
 import { useContext } from 'react';
-import { ControllerSurface } from './ControllerSurface';
+import { IControllerSurface } from './ControllerSurface';
 import { MIDIControllerContext } from './MIDIControllerContext';
 import { VirtualControllerSurface } from './VirtualControllerSurface';
 
-export function useMidiController(): ControllerSurface | null {
+export function useMidiController(): IControllerSurface | null {
   const context = useContext(MIDIControllerContext);
   if (!context) {
     throw new Error('Missing midi controller context');
@@ -20,4 +20,12 @@ export function useVirtualController(): VirtualControllerSurface {
     throw new Error('Missing virtual controller in context');
   }
   return context.virtualController;
+}
+
+export function useHardwareConnected(): boolean {
+  const context = useContext(MIDIControllerContext);
+  if (!context) {
+    throw new Error('Missing midi controller context');
+  }
+  return context.hardwareConnected;
 }

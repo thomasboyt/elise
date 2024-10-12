@@ -1,11 +1,12 @@
 import { EncoderBank } from '../state/state';
 import { PadColor, PadMode } from '../ui/uiModels';
+import { TypedEventEmitter } from '../util/TypedEventEmitter';
 import { ControllerState } from './ControllerState';
 import {
   ControllerSurface,
   controllerSurfaceEventNames,
   ControllerSurfaceEvents,
-  HardwareControllerSurface,
+  IControllerSurface,
 } from './ControllerSurface';
 import { VirtualControllerSurface } from './VirtualControllerSurface';
 
@@ -13,9 +14,12 @@ import { VirtualControllerSurface } from './VirtualControllerSurface';
  * This is an abstraction allowing the code to treat a virtual controller and
  * hardware controller as if it was just dealing with a single controller.
  */
-export class ControllerSurfaceGroup extends ControllerSurface {
+export class ControllerSurfaceGroup
+  extends TypedEventEmitter<ControllerSurfaceEvents>
+  implements IControllerSurface
+{
   private virtualController: VirtualControllerSurface;
-  private hardwareController?: HardwareControllerSurface;
+  private hardwareController?: ControllerSurface;
 
   constructor() {
     super();
@@ -31,7 +35,7 @@ export class ControllerSurfaceGroup extends ControllerSurface {
     return this.hardwareController;
   }
 
-  setHardwareController(controller: HardwareControllerSurface | null) {
+  setHardwareController(controller: ControllerSurface | null) {
     if (this.hardwareController) {
       this.unregisterEvents(this.hardwareController);
     }
@@ -69,6 +73,10 @@ export class ControllerSurfaceGroup extends ControllerSurface {
     this.eachController((c) => c.updatePadColor(padIndex, color));
   };
 
+  resetState = (snapshot: ControllerState) => {
+    this.eachController((c) => c.resetState(snapshot));
+  };
+
   handleStateUpdate = (snapshot: ControllerState) => {
     this.eachController((c) => c.handleStateUpdate(snapshot));
   };
@@ -84,7 +92,7 @@ export class ControllerSurfaceGroup extends ControllerSurface {
 
   private createGroupEmit(eventName: keyof ControllerSurfaceEvents) {
     return (...args: ControllerSurfaceEvents[typeof eventName]) => {
-      console.log('*** Controller event', eventName, ...args);
+      console.debug('Controller event', eventName, ...args);
       this.emit(eventName, ...args);
     };
   }

@@ -1,4 +1,3 @@
-import * as WebMidi from 'webmidi';
 import { TypedEventEmitter } from '../util/TypedEventEmitter';
 import { ControllerState, initControllerState } from './ControllerState';
 import { EncoderBank } from '../state/state';
@@ -54,11 +53,28 @@ export const controllerSurfaceEventNames: Record<
   enterPadTrackMode: true,
 };
 
+export interface IControllerSurface
+  extends TypedEventEmitter<ControllerSurfaceEvents> {
+  initController(): void;
+  teardownController(): void;
+  changeEncoderBank(encoderBank: EncoderBank): void;
+  changePadMode(padMode: PadMode): void;
+  updatePadColor(padIndex: number, color: PadColor): void;
+  updateEncoderName(encoderIndex: number, name: string): void;
+  updateEncoderValue(encoderIndex: number, value: number): void;
+
+  resetState(snapshot: ControllerState): void;
+  handleStateUpdate(snapshot: ControllerState): void;
+}
+
 /**
  * A generic MIDI controller binding, to be subclassed by individual implementations
  * of controllers for hardware/software.
  */
-export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurfaceEvents> {
+export abstract class ControllerSurface
+  extends TypedEventEmitter<ControllerSurfaceEvents>
+  implements IControllerSurface
+{
   abstract initController(): void;
   abstract teardownController(): void;
   abstract changeEncoderBank(encoderBank: EncoderBank): void;
@@ -68,6 +84,29 @@ export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurf
   abstract updateEncoderValue(encoderIndex: number, value: number): void;
 
   private lastSnapshot: ControllerState = initControllerState();
+
+  resetState(snapshot: ControllerState): void {
+    this.lastSnapshot = snapshot;
+    this.changePadMode(snapshot.padMode);
+    for (let padIndex = 0; padIndex < snapshot.pads.length; padIndex += 1) {
+      this.updatePadColor(padIndex, snapshot.pads[padIndex]);
+    }
+    for (
+      let encoderIndex = 0;
+      encoderIndex < snapshot.encoders.length;
+      encoderIndex += 1
+    ) {
+      // TODO: handle null encoders - review what the different states mean...
+      this.updateEncoderName(
+        encoderIndex,
+        snapshot.encoders[encoderIndex]?.name ?? '---',
+      );
+      this.updateEncoderValue(
+        encoderIndex,
+        snapshot.encoders[encoderIndex]?.value ?? 0,
+      );
+    }
+  }
 
   handleStateUpdate(snapshot: ControllerState): void {
     const prev = this.lastSnapshot!;
@@ -107,16 +146,5 @@ export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurf
         );
       }
     }
-  }
-}
-
-export abstract class HardwareControllerSurface extends ControllerSurface {
-  input: WebMidi.Input;
-  output: WebMidi.Output;
-
-  constructor(input: WebMidi.Input, output: WebMidi.Output) {
-    super();
-    this.input = input;
-    this.output = output;
   }
 }
