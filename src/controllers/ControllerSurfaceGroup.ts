@@ -1,8 +1,9 @@
 import { UIPage } from '../state/state';
-import { PadColor } from '../ui/uiModels';
+import { PadColor, PadMode } from '../ui/uiModels';
 import { ControllerState } from './ControllerState';
 import {
   ControllerSurface,
+  controllerSurfaceEventNames,
   ControllerSurfaceEvents,
   HardwareControllerSurface,
 } from './ControllerSurface';
@@ -63,6 +64,10 @@ export class ControllerSurfaceGroup extends ControllerSurface {
     this.eachController((c) => c.changePage(page));
   };
 
+  changePadMode = (padMode: PadMode) => {
+    this.eachController((c) => c.changePadMode(padMode));
+  };
+
   resetFromState = (snapshot: ControllerState) => {
     this.eachController((c) => c.resetFromState(snapshot));
   };
@@ -88,23 +93,29 @@ export class ControllerSurfaceGroup extends ControllerSurface {
     }
   }
 
-  private padOnCb = (...args: ControllerSurfaceEvents['padOn']) =>
-    this.emit('padOn', ...args);
-  private padOffCb = (...args: ControllerSurfaceEvents['padOff']) =>
-    this.emit('padOff', ...args);
-  private absoluteEncoderUpdated = (
-    ...args: ControllerSurfaceEvents['absoluteEncoderUpdated']
-  ) => this.emit('absoluteEncoderUpdated', ...args);
+  private createGroupEmit(eventName: keyof ControllerSurfaceEvents) {
+    return (...args: ControllerSurfaceEvents[typeof eventName]) => {
+      console.log('*** Controller event', eventName, ...args);
+      this.emit(eventName, ...args);
+    };
+  }
+  private eventCallbacks: Record<string, () => void> = {};
 
   private registerEvents(c: ControllerSurface) {
-    c.on('padOn', this.padOnCb);
-    c.on('padOff', this.padOffCb);
-    c.on('absoluteEncoderUpdated', this.absoluteEncoderUpdated);
+    const events = Object.keys(
+      controllerSurfaceEventNames,
+    ) as (keyof ControllerSurfaceEvents)[];
+    for (const eventName of events) {
+      const callback = this.createGroupEmit(eventName);
+      this.eventCallbacks[eventName] = callback;
+      c.on(eventName, callback);
+    }
   }
 
   private unregisterEvents(c: ControllerSurface) {
-    c.off('padOn', this.padOnCb);
-    c.off('padOff', this.padOffCb);
-    c.off('absoluteEncoderUpdated', this.absoluteEncoderUpdated);
+    for (const [eventName, callback] of Object.entries(this.eventCallbacks)) {
+      c.off(eventName as keyof ControllerSurfaceEvents, callback);
+      delete this.eventCallbacks[eventName];
+    }
   }
 }

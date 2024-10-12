@@ -74,6 +74,10 @@ export class VirtualControllerSurface extends ControllerSurface {
     // no-op since we don't have a visual display of this
   }
 
+  changePadMode(): void {
+    // no-op since we don't do anything differently based on pad mode here
+  }
+
   updateEncoderName(encoderIndex: number, name: string): void {
     this.state = produce(this.state, (draft) => {
       draft.encoders[encoderIndex].label = name;

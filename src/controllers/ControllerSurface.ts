@@ -2,37 +2,56 @@ import * as WebMidi from 'webmidi';
 import { TypedEventEmitter } from '../util/TypedEventEmitter';
 import { ControllerState } from './ControllerState';
 import { UIPage } from '../state/state';
-import { PadColor } from '../ui/uiModels';
+import { PadColor, PadMode } from '../ui/uiModels';
 
 export type ControllerSurfaceEvents = {
   padOn: [padIndex: number, velocity: number];
   padOff: [padIndex: number];
+  // eventually: padAftertouch
   absoluteEncoderUpdated: [encoderIndex: number, value: number];
   relativeEncoderUpdated: [encoderIndex: number, offset: number];
-  nextEncoderPage: () => void;
-  prevEncoderPage: () => void;
+  nextEncoderBank: [];
+  prevEncoderBank: [];
+  nextClipBar: [];
+  prevClipBar: [];
 
-  // These are all 1:1 with Launchkey controls and might need tweaking based on
-  // what controls we actually wind up with
-  setEncoderMode: (mode: number) => void;
-  setPadMode: (mode: number) => void;
-  padUp: () => void;
-  padDown: () => void;
-  sceneLaunch: () => void;
-  func: () => void; // probably going to turn this into a "shift" with on/off events
-  shift: () => void; // same as above, but can't be used with pads!
-  play: () => void;
-  record: () => void;
-
-  // Launchkey regular only!
-  trackLeft: () => void; // labeled as shift+padUp on mini
-  trackRight: () => void; // labeled as shift+padDown on mini
-  stop: () => void;
-  loop: () => void;
-  captureMidi: () => void;
-  metronome: () => void;
-  quantize: () => void;
-  undo: () => void;
+  // Launchkey: Hold "Func"
+  // Virtual controller: Select button
+  enterPadTrackMode: [];
+  // Launchkey: Hold ">"
+  // Virtual controller: Select button
+  enterPadSceneMode: [];
+  // Launchkey: Hold "Func" + >"
+  // Virtual controller: Select button
+  enterPadMuteMode: [];
+  // Launchkey: Enter drum mode in UI (1/2)
+  // Virtual controller: Select button
+  enterPadDrumMode: [];
+  // Launchkey: Enter drum mode in UI (2/2) - make sure this is "cycleable" (we receive sysex/CC twice)
+  // Virtual controller: Select button
+  enterPadChromaticMode: [];
+  // Launchkey: let go of shift state or select DAW mode in UI (from drum mode)
+  // Virtual controller: Select button
+  enterPadClipMode: [];
+};
+export const controllerSurfaceEventNames: Record<
+  keyof ControllerSurfaceEvents,
+  true
+> = {
+  padOn: true,
+  padOff: true,
+  absoluteEncoderUpdated: true,
+  relativeEncoderUpdated: true,
+  nextEncoderBank: true,
+  prevEncoderBank: true,
+  nextClipBar: true,
+  prevClipBar: true,
+  enterPadChromaticMode: true,
+  enterPadClipMode: true,
+  enterPadDrumMode: true,
+  enterPadMuteMode: true,
+  enterPadSceneMode: true,
+  enterPadTrackMode: true,
 };
 
 /**
@@ -44,6 +63,7 @@ export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurf
   abstract teardownController(): void;
   abstract resetFromState(snapshot: ControllerState): void;
   abstract changePage(page: UIPage): void;
+  abstract changePadMode(padMode: PadMode): void;
   abstract updatePadColor(padIndex: number, color: PadColor): void;
   abstract updateEncoderName(encoderIndex: number, name: string): void;
   abstract updateEncoderValue(encoderIndex: number, value: number): void;

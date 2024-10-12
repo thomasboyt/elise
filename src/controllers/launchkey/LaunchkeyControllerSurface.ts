@@ -11,20 +11,25 @@ import {
   messageTargets,
   midiCCToEncoderMode,
   midiCCToPadMode,
+  miniButtonCCs,
   padColors,
-  PadMode,
+  PadMode as LKPadMode,
+  regularButtonCCs,
   relativeEncoderCcOffset,
 } from './LaunchkeyConstants';
 import { ControllerState } from '../ControllerState';
 import { UIPage } from '../../state/state';
-import { PadColor } from '../../ui/uiModels';
+import { PadColor, PadMode } from '../../ui/uiModels';
 
 export class LaunchkeyControllerSurface extends HardwareControllerSurface {
   private sku: LaunchkeySkuType;
+  private padMode: PadMode;
 
   // Launchkey state
-  private padMode: PadMode | null;
-  private encoderMode: EncoderMode | null;
+  private launchkeyPadMode: LKPadMode | null;
+  private launchkeyEncoderMode: EncoderMode | null;
+  private funcHeld: boolean = false;
+  private launchHeld: boolean = false;
 
   constructor(
     input: WebMidi.Input,
@@ -33,8 +38,9 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
   ) {
     super(input, output);
     this.sku = sku;
-    this.padMode = null;
-    this.encoderMode = null;
+    this.launchkeyPadMode = null;
+    this.launchkeyEncoderMode = null;
+    this.padMode = 'clip';
   }
 
   initController(): void {
@@ -55,8 +61,8 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     // Page 22: Enable "DAW Performance note redirect (When On, Keybed notes go to DAW)"
     this.output.channels[7].sendControlChange(76, 127);
 
-    this.padMode = 'daw';
-    this.encoderMode = 'plugin';
+    this.launchkeyPadMode = 'daw';
+    this.launchkeyEncoderMode = 'plugin';
   }
 
   teardownController(): void {
@@ -83,12 +89,18 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     for (let idx = 0; idx < snapshot.pads.length; idx++) {
       this.updatePadColor(idx, snapshot.pads[idx]);
     }
+    this.padMode = snapshot.padMode;
   }
 
   changePage(page: UIPage): void {
     this.logOutgoing('Change page', page);
     // TODO: eventually we'll have Mixer/Sends pages that
     // we'll want to update on the pad UI here, I guess?
+  }
+
+  changePadMode(padMode: PadMode): void {
+    this.logOutgoing('Change pad mode', padMode);
+    this.padMode = padMode;
   }
 
   /**
@@ -98,13 +110,13 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
    * @param color One of the supported pad colors.
    */
   updatePadColor(padIndex: number, color: PadColor): void {
-    if (this.padMode === 'daw') {
+    if (this.launchkeyPadMode === 'daw') {
       const note = DawModePad.toNote(padIndex);
       this.logOutgoing('Set DAW mode pad', padIndex, color);
       this.output.channels[1].sendNoteOn(note, {
         rawAttack: padColors[color],
       });
-    } else if (this.padMode === 'drum') {
+    } else if (this.launchkeyPadMode === 'drum') {
       const note = DrumModePad.toNote(padIndex);
       this.logOutgoing('Set drum mode pad', padIndex, color);
       this.output.channels[10].sendNoteOn(note, {
@@ -139,13 +151,14 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
    */
   updateEncoderValue(encoderIndex: number, value: number): void {
     let midiCc;
+
     if (
-      this.encoderMode === 'plugin' ||
-      this.encoderMode === 'mixer' ||
-      this.encoderMode === 'sends'
+      this.launchkeyEncoderMode === 'plugin' ||
+      this.launchkeyEncoderMode === 'mixer' ||
+      this.launchkeyEncoderMode === 'sends'
     ) {
       midiCc = encoderIndex + absoluteEncoderCcOffset;
-    } else if (this.encoderMode === 'transport') {
+    } else if (this.launchkeyEncoderMode === 'transport') {
       midiCc = encoderIndex + relativeEncoderCcOffset;
     }
     if (midiCc) {
@@ -162,6 +175,10 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     this.log('Registered event listeners');
     this.input.channels[1].addListener('noteon', this.handleDawModePadNoteOn);
     this.input.channels[1].addListener('noteoff', this.handleDawModePadNoteOff);
+    this.input.channels[1].addListener(
+      'controlchange',
+      this.handleControlChangeCh1,
+    );
     this.input.channels[10].addListener('noteon', this.handleDrumModePadNoteOn);
     this.input.channels[7].addListener(
       'controlchange',
@@ -175,6 +192,10 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
 
   private unregisterEventListeners() {
     this.log('Unregistered event listeners');
+    this.input.channels[1].removeListener(
+      'controlchange',
+      this.handleControlChangeCh1,
+    );
     this.input.channels[1].removeListener(
       'noteon',
       this.handleDawModePadNoteOn,
@@ -217,23 +238,68 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     this.emit('padOff', padIndex);
   };
 
+  private handleControlChangeCh1 = (e: WebMidi.ControlChangeMessageEvent) => {
+    const buttonCCs = this.sku === 'mini' ? miniButtonCCs : regularButtonCCs;
+    if (e.controller.number === buttonCCs['Encoders Up'] && e.value) {
+      this.emit('prevEncoderBank');
+    } else if (e.controller.number === buttonCCs['Encoders Down'] && e.value) {
+      this.emit('nextEncoderBank');
+    } else if (e.controller.number === buttonCCs['Pads Up'] && e.value) {
+      this.emit('prevClipBar');
+    } else if (e.controller.number === buttonCCs['Pads Down'] && e.value) {
+      this.emit('nextClipBar');
+    } else if (e.controller.number === regularButtonCCs['Pads Launch']) {
+      this.launchHeld = !!e.value;
+      this.setShiftMode();
+    } else if (e.controller.number === regularButtonCCs['Pads Function']) {
+      this.funcHeld = !!e.value;
+      this.setShiftMode();
+    }
+  };
+
+  private setShiftMode() {
+    if (
+      this.padMode === 'clip' ||
+      this.padMode === 'track' ||
+      this.padMode === 'scene' ||
+      this.padMode === 'mute'
+    ) {
+      if (!this.launchHeld && !this.funcHeld && this.padMode !== 'clip') {
+        this.emit('enterPadClipMode');
+      } else if (
+        this.launchHeld &&
+        !this.funcHeld &&
+        this.padMode !== 'scene'
+      ) {
+        this.emit('enterPadSceneMode');
+      } else if (
+        !this.launchHeld &&
+        this.funcHeld &&
+        this.padMode !== 'track'
+      ) {
+        this.emit('enterPadTrackMode');
+      } else if (this.launchHeld && this.funcHeld && this.padMode !== 'mute') {
+        this.emit('enterPadMuteMode');
+      }
+    }
+  }
+
   private handleControlChangeCh7 = (e: WebMidi.ControlChangeMessageEvent) => {
     if (e.controller.number === 29) {
-      this.handleChangePadMode(e);
+      this.handleChangeLKPadMode(e);
     }
     if (e.controller.number === 30) {
       this.handleChangeEncoderMode(e);
     }
   };
 
-  private handleChangePadMode = (e: WebMidi.ControlChangeMessageEvent) => {
-    const padMode = midiCCToPadMode.get(e.rawValue!);
-    if (!padMode) {
+  private handleChangeLKPadMode = (e: WebMidi.ControlChangeMessageEvent) => {
+    const lkPadMode = midiCCToPadMode.get(e.rawValue!);
+    if (!lkPadMode) {
       throw new Error(`Unrecognized pad mode CC ${e.rawValue}`);
     }
-    this.logIncoming('Pad mode change', padMode);
-    console.log(e);
-    this.padMode = padMode;
+    this.logIncoming('Launchkey pad mode change', lkPadMode);
+    this.launchkeyPadMode = lkPadMode;
     // TODO: emit page change?
   };
 
@@ -242,8 +308,8 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     if (!encoderMode) {
       throw new Error(`Unrecognized encoder mode CC value ${e.rawValue}`);
     }
-    this.logIncoming('Encoder mode change', encoderMode);
-    this.encoderMode = encoderMode;
+    this.logIncoming('Launchkey encoder mode change', encoderMode);
+    this.launchkeyEncoderMode = encoderMode;
     // TODO: emit page change?
   };
 

@@ -1,3 +1,5 @@
+import { PadMode } from '../ui/uiModels';
+
 interface MidiCcParameter {
   type: 'midiCc';
   controllerNumber: number;
@@ -89,6 +91,8 @@ export interface ProjectStorage {
 export type UIPage = 'note' | 'parameters' | 'lfo';
 
 export interface UIState {
+  padMode: PadMode;
+
   heldPad: number | null;
   heldPadStartTime: number | null; // used to distinguish between "toggle" and "hold"
   protectHeldPadDeletion: boolean; // set true after a note is toggled on so we don't remove it when it's let go
@@ -168,6 +172,8 @@ export function createDefaultProjectStorage(): ProjectStorage {
 
 export function createDefaultUIState(): UIState {
   return {
+    padMode: 'clip',
+
     heldPad: null,
     heldPadStartTime: null,
     protectHeldPadDeletion: false,

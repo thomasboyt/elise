@@ -147,7 +147,7 @@ function App() {
           <ControllerMessageHandler />
           <DebugControls />
           <VirtualController />
-          <DebugLog />
+          <DebugLog inputDevices={inputDevices} outputDevices={outputDevices} />
           <StateTree />
         </EliseContextProvider>
       </MIDIControllerProvider>

@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageEvent } from 'webmidi';
-import { useMidiController } from './controllers/useMidiController';
-import { HardwareControllerSurface } from './controllers/ControllerSurface';
+import { MessageEvent, WebMidi } from 'webmidi';
+import { EliseMIDIDevice } from './types';
 
-export function DebugLog() {
-  const controller = useMidiController();
+interface Props {
+  inputDevices: EliseMIDIDevice[];
+  outputDevices: EliseMIDIDevice[];
+}
+
+export function DebugLog(props: Props) {
+  const { inputDevices } = props;
+
   const [messageLog, setMessageLog] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
 
@@ -16,16 +21,18 @@ export function DebugLog() {
   }
 
   useEffect(() => {
-    if (controller instanceof HardwareControllerSurface) {
-      controller.input.addListener('midimessage', handleMidiMessage);
+    for (const { id } of inputDevices) {
+      const controller = WebMidi.getInputById(id);
+      controller.addListener('midimessage', handleMidiMessage);
     }
 
     return () => {
-      if (controller instanceof HardwareControllerSurface) {
-        controller.input.removeListener('midimessage', handleMidiMessage);
+      for (const { id } of inputDevices) {
+        const controller = WebMidi.getInputById(id);
+        controller.removeListener('midimessage', handleMidiMessage);
       }
     };
-  }, [controller]);
+  }, [inputDevices]);
 
   useEffect(() => {
     if (logRef.current) {
