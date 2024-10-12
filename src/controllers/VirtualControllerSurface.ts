@@ -3,12 +3,12 @@ import { ControllerState } from './ControllerState';
 import { ControllerSurface } from './ControllerSurface';
 import { PadColor } from '../ui/uiModels';
 
-interface VirtualDeviceEncoder {
+export interface VirtualDeviceEncoder {
   label: string | null;
   value: number | null;
 }
 
-interface VirtualDevicePad {
+export interface VirtualDevicePad {
   color: PadColor;
 }
 

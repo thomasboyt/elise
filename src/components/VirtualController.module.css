@@ -1,0 +1,65 @@
+.VirtualController {
+  width: 600px;
+  height: 400px;
+  border: 1px solid black;
+  overflow: hidden;
+  display: flex;
+  flex-flow: column;
+}
+
+.gridContainer {
+  display: grid;
+
+  /* "border" */
+  background-color: black;
+  grid-gap: 1px;
+}
+
+.listReset {
+  list-style: none;
+  margin-left: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding-left: 0px;
+}
+
+.encoders {
+  composes: gridContainer listReset;
+  flex: 0 0 70%;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  border-bottom: 1px solid black;
+}
+
+.encoder {
+  display: block;
+  background-color: white;
+  overflow: hidden;
+  text-align: center;
+  padding: 0 10px;
+
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.encoder form {
+  display: flex;
+  margin-top: 20px;
+}
+
+.encoder form input {
+  flex: 1 0 auto;
+}
+
+.encoder form button {
+  flex: 0 0 auto;
+}
+
+.pads {
+  composes: gridContainer listReset;
+  flex: 1 0 auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
