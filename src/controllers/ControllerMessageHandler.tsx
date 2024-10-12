@@ -3,7 +3,7 @@ import { useEliseContext } from '../state/useEliseContext';
 import { useMidiController } from './useMidiController';
 import { PAD_HOLD_TIME } from '../ui/uiConstants';
 import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
-import { EliseState } from '../state/state';
+import { EliseState, NoteParameter } from '../state/state';
 import { getControllerState } from './ControllerState';
 import {
   changePadMode,
@@ -13,6 +13,8 @@ import {
   insertNewStep,
   removeStep,
   setHeldPad,
+  setNextStepNoteParameter,
+  setStepNoteParameter,
   unsetHeldPad,
 } from '../state/updateState';
 import { getTrackOrThrow } from '../state/accessors';
@@ -117,10 +119,46 @@ export function ControllerMessageHandler() {
       changePadMode(update, 'track');
     }
 
+    function handleAbsoluteEncoderUpdated(encoderIndex: number, value: number) {
+      const { currentTrack, currentScene } = stateRef.current.ui;
+      let currentStep = null;
+      if (stateRef.current.ui.heldPad !== null) {
+        currentStep = getStepIndexFromPad(
+          stateRef.current,
+          stateRef.current.ui.heldPad,
+        );
+      }
+
+      if (stateRef.current.ui.encoderBank === 'note') {
+        // TODO: better mapping here lmao
+        const mapping: Record<number, NoteParameter> = {
+          0: 'velocity',
+          1: 'gate',
+          2: 'offset',
+        };
+        const parameter = mapping[encoderIndex];
+        if (!parameter) {
+          return;
+        }
+        if (currentStep === null) {
+          setNextStepNoteParameter(update, parameter, value);
+        } else {
+          setStepNoteParameter(
+            update,
+            currentScene,
+            currentTrack,
+            currentStep,
+            parameter,
+            value,
+          );
+        }
+      } else if (stateRef.current.ui.encoderBank === 'parameters') {
+        // TODO
+      }
+    }
+
     controller.on('padOn', handlePadOn);
     controller.on('padOff', handlePadOff);
-    // controller.on('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
-    // controller.on('relativeEncoderUpdated', handleRelativeEncoderUpdated);
     controller.on('enterPadClipMode', handleEnterPadClipMode);
     controller.on('enterPadSceneMode', handleEnterPadSceneMode);
     controller.on('enterPadTrackMode', handleEnterPadTrackMode);
@@ -129,14 +167,14 @@ export function ControllerMessageHandler() {
     // controller.on('enterPadChromaticMode', handleEnterPadChromaticMode);
     // controller.on('nextClipBar', handleNextClipBar);
     // controller.on('prevClipBar', handlePrevClipBar);
+    controller.on('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
+    // controller.on('relativeEncoderUpdated', handleRelativeEncoderUpdated);
     // controller.on('nextEncoderBank', handleNextEncoderBank);
     // controller.on('prevEncoderBank', handlePrevEncoderBank);
 
     return () => {
       controller.off('padOn', handlePadOn);
       controller.off('padOff', handlePadOff);
-      // controller.off('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
-      // controller.off('relativeEncoderUpdated', handleRelativeEncoderUpdated);
       controller.off('enterPadClipMode', handleEnterPadClipMode);
       controller.off('enterPadSceneMode', handleEnterPadSceneMode);
       controller.off('enterPadTrackMode', handleEnterPadTrackMode);
@@ -145,6 +183,8 @@ export function ControllerMessageHandler() {
       // controller.off('enterPadChromaticMode', handleEnterPadChromaticMode);
       // controller.off('nextClipBar', handleNextClipBar);
       // controller.off('prevClipBar', handlePrevClipBar);
+      controller.off('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
+      // controller.off('relativeEncoderUpdated', handleRelativeEncoderUpdated);
       // controller.off('nextEncoderBank', handleNextEncoderBank);
       // controller.off('prevEncoderBank', handlePrevEncoderBank);
     };

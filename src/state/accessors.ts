@@ -1,4 +1,4 @@
-import { EliseState, MidiClipTrack, Scene } from './state';
+import { EliseState, MidiClipTrack, MidiStep, Scene } from './state';
 
 export function getScene(state: EliseState, index: number): Scene | null {
   return state.project.scenes[index];
@@ -30,4 +30,31 @@ export function getTrackOrThrow(
     throw new Error(`Track ${trackIndex} in Scene ${sceneIndex} is null`);
   }
   return track;
+}
+
+export function getStep(
+  state: EliseState,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+): MidiStep | null {
+  return (
+    state.project.scenes[sceneIndex]?.tracks[trackIndex]?.steps[stepIndex] ??
+    null
+  );
+}
+
+export function getStepOrThrow(
+  state: EliseState,
+  sceneIndex: number,
+  trackIndex: number,
+  stepIndex: number,
+): MidiStep {
+  const step = getStep(state, sceneIndex, trackIndex, stepIndex);
+  if (!step) {
+    throw new Error(
+      `Step ${stepIndex} in Track ${trackIndex} in Scene ${sceneIndex} is null`,
+    );
+  }
+  return step;
 }

@@ -4,6 +4,7 @@ import {
   createEmptyTrack,
   EliseState,
   MidiStep,
+  NoteParameter,
 } from './state';
 import { PadMode } from '../ui/uiModels';
 import { getScene, getTrack } from './accessors';
@@ -98,6 +99,21 @@ export function enableProtectHeldPadDeletion(update: Updater<EliseState>) {
  * ---
  */
 
+function addNote(notes: number[], note: number) {
+  if (notes.some((existing) => existing === note)) {
+    return;
+  }
+  notes.push(note);
+}
+
+function removeNote(notes: number[], note: number) {
+  const noteIndex = notes.findIndex((existing) => existing === note);
+  if (noteIndex === -1) {
+    return;
+  }
+  notes.splice(noteIndex, 1);
+}
+
 export function addNoteToStep(
   update: Updater<EliseState>,
   sceneIndex: number,
@@ -109,10 +125,7 @@ export function addNoteToStep(
     const notes =
       draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex]!
         .notes;
-    if (notes.some((existing) => existing === note)) {
-      return;
-    }
-    notes.push(note);
+    addNote(notes, note);
   });
 }
 
@@ -127,54 +140,51 @@ export function removeNoteFromStep(
     const notes =
       draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex]!
         .notes;
-    const noteIndex = notes.findIndex((existing) => existing === note);
-    if (noteIndex === -1) {
-      return;
-    }
-    notes.splice(noteIndex, 1);
+    removeNote(notes, note);
   });
 }
 
-// TODO: maybe use some currying for less boilerplate here?
+export function addNoteToNextStepSettings(
+  update: Updater<EliseState>,
+  note: number,
+) {
+  update((draft) => {
+    const notes = draft.ui.nextStepSettings.notes;
+    addNote(notes, note);
+  });
+}
 
-export function setStepVelocity(
+export function removeNoteFromNextStepSettings(
+  update: Updater<EliseState>,
+  note: number,
+) {
+  update((draft) => {
+    const notes = draft.ui.nextStepSettings.notes;
+    removeNote(notes, note);
+  });
+}
+
+export function setStepNoteParameter(
   update: Updater<EliseState>,
   sceneIndex: number,
   trackIndex: number,
   stepIndex: number,
-  velocity: number,
+  parameter: NoteParameter,
+  value: number,
 ) {
   update((draft) => {
-    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[
-      stepIndex
-    ]!.velocity = velocity;
+    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex]![
+      parameter
+    ] = value;
   });
 }
 
-export function setStepOffset(
+export function setNextStepNoteParameter(
   update: Updater<EliseState>,
-  sceneIndex: number,
-  trackIndex: number,
-  stepIndex: number,
-  offset: number,
+  parameter: NoteParameter,
+  value: number,
 ) {
   update((draft) => {
-    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[
-      stepIndex
-    ]!.offset = offset;
-  });
-}
-
-export function setStepLength(
-  update: Updater<EliseState>,
-  sceneIndex: number,
-  trackIndex: number,
-  stepIndex: number,
-  length: number,
-) {
-  update((draft) => {
-    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[
-      stepIndex
-    ]!.gate = length;
+    draft.ui.nextStepSettings[parameter] = value;
   });
 }

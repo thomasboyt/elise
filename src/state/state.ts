@@ -92,6 +92,7 @@ export interface ProjectStorage {
 // ------------------
 
 export type EncoderBank = 'note' | 'parameters' | 'lfo' | 'global';
+export type NoteParameter = 'gate' | 'velocity' | 'offset';
 
 export interface NextStepSettings {
   notes: number[];
