@@ -32,14 +32,14 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
 
   private midiInput: WebMidi.Input;
   private dawInput: WebMidi.Input;
-  private midiOutput: WebMidi.Output;
+  // private midiOutput: WebMidi.Output;
   private dawOutput: WebMidi.Output;
   private sku: LaunchkeySkuType;
 
   constructor(
     midiInput: WebMidi.Input,
     dawInput: WebMidi.Input,
-    midiOutput: WebMidi.Output,
+    _midiOutput: WebMidi.Output,
     dawOutput: WebMidi.Output,
     sku: LaunchkeySkuType,
   ) {
@@ -47,7 +47,7 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     this.sku = sku;
     this.midiInput = midiInput;
     this.dawInput = dawInput;
-    this.midiOutput = midiOutput;
+    // this.midiOutput = midiOutput;
     this.dawOutput = dawOutput;
   }
 
@@ -191,6 +191,8 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
       'controlchange',
       this.handleControlChangeCh16,
     );
+    this.midiInput.addListener('noteon', this.handleMidiNoteOn);
+    this.midiInput.addListener('noteoff', this.handleMidiNoteOff);
   }
 
   private unregisterEventListeners() {
@@ -221,6 +223,8 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
       'controlchange',
       this.handleControlChangeCh16,
     );
+    this.midiInput.removeListener('noteon', this.handleMidiNoteOn);
+    this.midiInput.removeListener('noteoff', this.handleMidiNoteOff);
   }
 
   private handleMidiMessage = (e: WebMidi.MessageEvent) => {
@@ -352,6 +356,24 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
       // TODO: faders & fader buttons
     }
   };
+
+  private handleMidiNoteOn(e: WebMidi.NoteMessageEvent) {
+    if (e.note.rawAttack === 0) {
+      // I'm pretty sure WebMidi handles this for us, but just in case
+      this.handleMidiNoteOff(e);
+      return;
+    }
+    this.emit(
+      'keyboardNoteOn',
+      e.message.channel,
+      e.note.number,
+      e.note.rawAttack,
+    );
+  }
+
+  private handleMidiNoteOff(e: WebMidi.NoteMessageEvent) {
+    this.emit('keyboardNoteOff', e.message.channel, e.note.number);
+  }
 
   private log(...args: unknown[]) {
     console.log('*** Launchkey Controller:', ...args);

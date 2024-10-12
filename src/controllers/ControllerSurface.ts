@@ -7,6 +7,8 @@ export type ControllerSurfaceEvents = {
   padOn: [padIndex: number, velocity: number];
   padOff: [padIndex: number];
   // eventually: padAftertouch
+  keyboardNoteOn: [channel: number, note: number, velocity: number];
+  keyboardNoteOff: [channel: number, note: number];
   absoluteEncoderUpdated: [encoderIndex: number, value: number];
   relativeEncoderUpdated: [encoderIndex: number, offset: number];
   nextEncoderBank: [];
@@ -41,6 +43,8 @@ export const controllerSurfaceEventNames: Record<
   padOff: true,
   absoluteEncoderUpdated: true,
   relativeEncoderUpdated: true,
+  keyboardNoteOn: true,
+  keyboardNoteOff: true,
   nextEncoderBank: true,
   prevEncoderBank: true,
   nextClipBar: true,
