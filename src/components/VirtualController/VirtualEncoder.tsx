@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
-import { VirtualDeviceEncoder } from '../controllers/VirtualControllerSurface';
-import { useVirtualController } from '../controllers/useMidiController';
+import { VirtualDeviceEncoder } from '../../controllers/VirtualControllerSurface';
+import { useVirtualController } from '../../controllers/useMidiController';
 import css from './VirtualController.module.css';
 
 function getFormValue(form: HTMLFormElement, key: string): string | null {

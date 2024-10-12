@@ -8,7 +8,7 @@ import { DebugControls } from './DebugControls';
 import { EliseContextProvider } from './state/EliseContextProvider';
 import { StateTree } from './StateTree';
 import { ControllerMessageHandler } from './controllers/ControllerMessageHandler';
-import { VirtualController } from './components/VirtualController';
+import { VirtualController } from './components/VirtualController/VirtualController';
 
 function addDeviceIfNotPresent(
   devices: EliseMIDIDevice[],

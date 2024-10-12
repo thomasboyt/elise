@@ -79,6 +79,9 @@ export interface Scene {
   bpmOverride: number | null;
 }
 
+/**
+ * ProjectStorage is anything that gets saved when you press "save".
+ */
 export interface ProjectStorage {
   scenes: (Scene | null)[];
   bpm: number;
@@ -97,6 +100,13 @@ export interface NextStepSettings {
   offset: number;
 }
 
+/**
+ * UIState is anything that doesn't persist in the project.
+ *
+ * This may expand to include playback state, not sure yet. Might make sense to
+ * keep in a separate thing, but there's stuff like "mute states" that could be
+ * in either.
+ */
 export interface UIState {
   padMode: PadMode;
 

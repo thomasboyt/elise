@@ -1,5 +1,5 @@
-import { useVirtualController } from '../controllers/useMidiController';
-import { PadColor } from '../ui/uiModels';
+import { useVirtualController } from '../../controllers/useMidiController';
+import { PadColor } from '../../ui/uiModels';
 
 interface Props {
   padIndex: number;

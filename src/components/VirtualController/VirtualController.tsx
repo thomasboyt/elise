@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { useVirtualController } from '../controllers/useMidiController';
+import { useVirtualController } from '../../controllers/useMidiController';
 import { VirtualPad } from './VirtualPad';
 import { VirtualEncoder } from './VirtualEncoder';
 import css from './VirtualController.module.css';
