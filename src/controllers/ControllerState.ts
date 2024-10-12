@@ -21,7 +21,7 @@ export interface ControllerState {
    * controller, and some only make sense in some contexts.
    */
   padMode: PadMode;
-  // TODO: current pattern (for display state)
+  // TODO: current scene (for display state)
   // TODO: current track (for display state)
   // TODO: current bar (for display state)
 }
@@ -31,8 +31,8 @@ function getPadColors(state: EliseState): PadColor[] {
 
   if (padMode === 'clip') {
     // TODO: use current bar!
-    const pattern = state.project.patterns[currentPattern];
-    const track = pattern.tracks[currentTrack];
+    const scene = state.project.scenes[currentPattern];
+    const track = scene.tracks[currentTrack];
     const steps = track.steps;
 
     // TODO: fill up to 16 steps for shorter bar lengths

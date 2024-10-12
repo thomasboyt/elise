@@ -6,7 +6,7 @@ export function getHeldStepIndex(state: EliseState): number | null {
     return null;
   }
   // TODO: if drum mode, return null
-  const track = state.project.patterns[currentPattern].tracks[currentTrack];
+  const track = state.project.scenes[currentPattern].tracks[currentTrack];
   const offset = currentStepsPage * track.pageLength;
   return offset + heldPad;
 }

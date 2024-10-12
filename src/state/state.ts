@@ -28,7 +28,7 @@ interface MidiAllHardwareDestination {
 type MidiDestination = MidiAllHardwareDestination | MidiHardwareDestination;
 
 /**
- * This pattern-level configuration will not be plockable. We might want to do that in
+ * This scene-level configuration will not be plockable. We might want to do that in
  * the future, but this will make it easier to build a separate management UI for CCs
  * that can support MIDI learn and stuff without it getting too weird.
  */
@@ -73,7 +73,7 @@ interface MidiPatternTrack {
   swing: number;
 }
 
-interface Pattern {
+interface Scene {
   tracks: MidiPatternTrack[];
   // these are settings that may not be exposed in pages, but only changed
   // via touch screen
@@ -81,7 +81,7 @@ interface Pattern {
 }
 
 export interface ProjectStorage {
-  patterns: Pattern[];
+  scenes: Scene[];
 }
 
 // ------------------
@@ -155,13 +155,12 @@ export function insertNewStep(
     velocity: state.ui.nextStepSettings.velocity,
   };
 
-  state.project.patterns[patternIndex].tracks[trackIndex].steps[stepIndex] =
-    step;
+  state.project.scenes[patternIndex].tracks[trackIndex].steps[stepIndex] = step;
 }
 
 export function createDefaultProjectStorage(): ProjectStorage {
   return {
-    patterns: [
+    scenes: [
       {
         bpm: 120,
         tracks: [createEmptyTrack()],

@@ -11,7 +11,7 @@ import {
 export function getCurrentPageEncoders(state: EliseState): (Encoder | null)[] {
   const { currentPage, currentPattern, currentTrack, nextStepSettings } =
     state.ui;
-  const track = state.project.patterns[currentPattern].tracks[currentTrack];
+  const track = state.project.scenes[currentPattern].tracks[currentTrack];
 
   const heldStep = getHeldStepIndex(state);
   const currentNote = heldStep !== null ? track.steps[heldStep] : null;

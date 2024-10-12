@@ -46,7 +46,7 @@ export function ControllerMessageHandler() {
 
         const stepIndex = getHeldStepIndex(draft);
         const existingStep =
-          draft.project.patterns[currentPattern].tracks[currentTrack].steps[
+          draft.project.scenes[currentPattern].tracks[currentTrack].steps[
             stepIndex!
           ];
 
@@ -87,7 +87,7 @@ export function ControllerMessageHandler() {
         if (delta < PAD_HOLD_TIME && !currentState.ui.protectHeldPadDeletion) {
           // turn off the step
           update((draft) => {
-            draft.project.patterns[currentPattern].tracks[currentTrack].steps[
+            draft.project.scenes[currentPattern].tracks[currentTrack].steps[
               stepIndex
             ] = null;
           });
