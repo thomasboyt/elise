@@ -50,7 +50,7 @@ interface ParameterLock {
   value: number;
 }
 
-interface MidiStep {
+export interface MidiStep {
   // These are stored as a map of name -> value
   // For now the only name format is `midiParameter-${idx}`
   parameterLocks: Record<string, ParameterLock>;
@@ -90,6 +90,13 @@ export interface ProjectStorage {
 
 export type UIPage = 'note' | 'parameters' | 'lfo';
 
+export interface NextStepSettings {
+  notes: number[];
+  gate: number;
+  velocity: number;
+  offset: number;
+}
+
 export interface UIState {
   padMode: PadMode;
 
@@ -99,19 +106,14 @@ export interface UIState {
 
   // UI navigation
   currentTrack: number;
-  currentPattern: number;
+  currentScene: number;
   currentPage: UIPage;
   currentStepsPage: number;
 
   // The settings that the next note will be placed at.
   // This is different from how Elektron sequencers work - those just require
   // p-locking after placing a trig. This is more like a Circuit Tracks (IIRC?).
-  nextStepSettings: {
-    notes: number[];
-    gate: number;
-    velocity: number;
-    offset: number;
-  };
+  nextStepSettings: NextStepSettings;
 }
 
 export interface EliseState {
@@ -141,23 +143,6 @@ export function createEmptyTrack(): MidiPatternTrack {
   };
 }
 
-export function insertNewStep(
-  state: EliseState,
-  patternIndex: number,
-  trackIndex: number,
-  stepIndex: number,
-) {
-  const step: MidiStep = {
-    gate: state.ui.nextStepSettings.gate,
-    notes: [...state.ui.nextStepSettings.notes],
-    parameterLocks: {},
-    offset: state.ui.nextStepSettings.offset,
-    velocity: state.ui.nextStepSettings.velocity,
-  };
-
-  state.project.scenes[patternIndex].tracks[trackIndex].steps[stepIndex] = step;
-}
-
 export function createDefaultProjectStorage(): ProjectStorage {
   return {
     scenes: [
@@ -178,7 +163,7 @@ export function createDefaultUIState(): UIState {
     protectHeldPadDeletion: false,
 
     currentPage: 'note',
-    currentPattern: 0,
+    currentScene: 0,
     currentTrack: 0,
     currentStepsPage: 0,
 

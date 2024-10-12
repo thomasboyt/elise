@@ -1,6 +1,6 @@
 import * as WebMidi from 'webmidi';
 import { TypedEventEmitter } from '../util/TypedEventEmitter';
-import { ControllerState } from './ControllerState';
+import { ControllerState, initControllerState } from './ControllerState';
 import { UIPage } from '../state/state';
 import { PadColor, PadMode } from '../ui/uiModels';
 
@@ -61,12 +61,53 @@ export const controllerSurfaceEventNames: Record<
 export abstract class ControllerSurface extends TypedEventEmitter<ControllerSurfaceEvents> {
   abstract initController(): void;
   abstract teardownController(): void;
-  abstract resetFromState(snapshot: ControllerState): void;
   abstract changePage(page: UIPage): void;
   abstract changePadMode(padMode: PadMode): void;
   abstract updatePadColor(padIndex: number, color: PadColor): void;
   abstract updateEncoderName(encoderIndex: number, name: string): void;
   abstract updateEncoderValue(encoderIndex: number, value: number): void;
+
+  private lastSnapshot: ControllerState = initControllerState();
+
+  handleStateUpdate(snapshot: ControllerState): void {
+    const prev = this.lastSnapshot!;
+    this.lastSnapshot = snapshot;
+
+    if (snapshot.padMode !== prev.padMode) {
+      this.changePadMode(snapshot.padMode);
+    }
+
+    for (let padIndex = 0; padIndex < snapshot.pads.length; padIndex += 1) {
+      if (prev.pads[padIndex] !== snapshot.pads[padIndex]) {
+        this.updatePadColor(padIndex, snapshot.pads[padIndex]);
+      }
+    }
+    for (
+      let encoderIndex = 0;
+      encoderIndex < snapshot.encoders.length;
+      encoderIndex += 1
+    ) {
+      // TODO: handle null encoders - review what the different states mean...
+      if (
+        prev.encoders[encoderIndex]?.name !==
+        snapshot.encoders[encoderIndex]?.name
+      ) {
+        this.updateEncoderName(
+          encoderIndex,
+          snapshot.encoders[encoderIndex]?.name ?? '---',
+        );
+      }
+      if (
+        prev.encoders[encoderIndex]?.value !==
+        snapshot.encoders[encoderIndex]?.value
+      ) {
+        this.updateEncoderValue(
+          encoderIndex,
+          snapshot.encoders[encoderIndex]?.value ?? 0,
+        );
+      }
+    }
+  }
 }
 
 export abstract class HardwareControllerSurface extends ControllerSurface {

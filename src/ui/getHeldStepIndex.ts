@@ -1,12 +1,27 @@
 import { EliseState } from '../state/state';
 
 export function getHeldStepIndex(state: EliseState): number | null {
-  const { currentPattern, currentTrack, currentStepsPage, heldPad } = state.ui;
+  if (state.ui.padMode !== 'clip') {
+    throw new Error('Refusing to get held step index in non-clip mode');
+  }
+
+  const { heldPad } = state.ui;
   if (heldPad === null) {
     return null;
   }
-  // TODO: if drum mode, return null
-  const track = state.project.scenes[currentPattern].tracks[currentTrack];
+  return getStepIndexFromPad(state, heldPad);
+}
+
+export function getStepIndexFromPad(
+  state: EliseState,
+  padIndex: number,
+): number {
+  if (state.ui.padMode !== 'clip') {
+    throw new Error('Refusing to get held step index in non-clip mode');
+  }
+
+  const { currentScene, currentTrack, currentStepsPage } = state.ui;
+  const track = state.project.scenes[currentScene].tracks[currentTrack];
   const offset = currentStepsPage * track.pageLength;
-  return offset + heldPad;
+  return offset + padIndex;
 }

@@ -9,11 +9,11 @@ import {
 } from './uiModels';
 
 export function getCurrentPageEncoders(state: EliseState): (Encoder | null)[] {
-  const { currentPage, currentPattern, currentTrack, nextStepSettings } =
+  const { currentPage, currentScene, currentTrack, nextStepSettings, padMode } =
     state.ui;
-  const track = state.project.scenes[currentPattern].tracks[currentTrack];
+  const track = state.project.scenes[currentScene].tracks[currentTrack];
 
-  const heldStep = getHeldStepIndex(state);
+  const heldStep = padMode === 'clip' ? getHeldStepIndex(state) : null;
   const currentNote = heldStep !== null ? track.steps[heldStep] : null;
 
   if (currentPage === 'note') {

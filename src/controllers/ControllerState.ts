@@ -26,27 +26,57 @@ export interface ControllerState {
   // TODO: current bar (for display state)
 }
 
+function extendArrayToLength<T>(arr: T[], length: number, fill: T) {
+  if (arr.length >= length) {
+    return arr;
+  }
+  const diff = length - arr.length;
+  const fillItems = new Array(diff).fill(fill);
+  return arr.concat(fillItems);
+}
+
 function getPadColors(state: EliseState): PadColor[] {
-  const { currentPattern, currentTrack, padMode } = state.ui;
+  const { currentScene, currentTrack, currentStepsPage, padMode } = state.ui;
+
+  // TODO:
+  // Draw held pad in different color.
+  // For toggle vs p-lock in clip view this needs to be white or red
+  // so might need to get fancy.
 
   if (padMode === 'clip') {
-    // TODO: use current bar!
-    const scene = state.project.scenes[currentPattern];
+    const scene = state.project.scenes[currentScene];
     const track = scene.tracks[currentTrack];
-    const steps = track.steps;
+    const offset = currentStepsPage * track.pageLength;
+    const steps = track.steps.slice(offset, offset + track.pageLength);
 
-    // TODO: fill up to 16 steps for shorter bar lengths
-    return steps.map((step): PadColor => {
+    const pads = steps.map((step, idx): PadColor => {
       if (!step) {
         return 'off';
+      }
+      if (state.ui.heldPad === idx) {
+        if (state.ui.protectHeldPadDeletion) {
+          return 'white';
+        } else {
+          return 'red';
+        }
       }
       // TODO: different colors for different types of notes?
       return 'green';
     });
+    return extendArrayToLength(pads, 16, 'off');
+  } else if (padMode === 'track') {
+    const scene = state.project.scenes[currentScene];
+    const pads = scene.tracks.map(
+      (_track, idx): PadColor => (idx === currentTrack ? 'green' : 'blue'),
+    );
+    return extendArrayToLength(pads, 16, 'off');
+  } else if (padMode === 'scene') {
+    const pads = state.project.scenes.map(
+      (_track, idx): PadColor => (idx === currentScene ? 'green' : 'blue'),
+    );
+    return extendArrayToLength(pads, 16, 'off');
   }
 
-  // TODO: track mode
-  // TODO: scene mode
   // TODO: mute mode
   // TODO: drum mode
   // TODO: chromatic mode
@@ -64,5 +94,14 @@ export function getControllerState(state: EliseState): ControllerState {
     encoders,
     pads,
     padMode,
+  };
+}
+
+export function initControllerState(): ControllerState {
+  return {
+    padMode: 'clip',
+    page: 'note',
+    encoders: new Array(8).fill(null),
+    pads: new Array(16).fill('off'),
   };
 }

@@ -145,10 +145,15 @@ function App() {
       >
         <EliseContextProvider>
           <ControllerMessageHandler />
-          <DebugControls />
-          <VirtualController />
-          <DebugLog inputDevices={inputDevices} outputDevices={outputDevices} />
-          <StateTree />
+          <div>
+            <DebugControls />
+            <VirtualController />
+            <DebugLog
+              inputDevices={inputDevices}
+              outputDevices={outputDevices}
+            />
+            <StateTree />
+          </div>
         </EliseContextProvider>
       </MIDIControllerProvider>
     </>

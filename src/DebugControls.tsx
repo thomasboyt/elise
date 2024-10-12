@@ -12,7 +12,7 @@ export function DebugControls() {
         Init controller
       </button>
       <button
-        onClick={() => controller?.resetFromState(getControllerState(state))}
+        onClick={() => controller?.handleStateUpdate(getControllerState(state))}
       >
         Send controller state
       </button>

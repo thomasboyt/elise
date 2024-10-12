@@ -17,7 +17,6 @@ import {
   regularButtonCCs,
   relativeEncoderCcOffset,
 } from './LaunchkeyConstants';
-import { ControllerState } from '../ControllerState';
 import { UIPage } from '../../state/state';
 import { PadColor, PadMode } from '../../ui/uiModels';
 
@@ -69,27 +68,6 @@ export class LaunchkeyControllerSurface extends HardwareControllerSurface {
     this.log('Teardown');
     this.unregisterEventListeners();
     this.sendRawMessage(launchkeySysexMessageFactories.disableDawMode());
-  }
-
-  resetFromState(snapshot: ControllerState): void {
-    this.log('Reset from state');
-    this.changePage(snapshot.page);
-    for (let idx = 0; idx < snapshot.encoders.length; idx++) {
-      const encoder = snapshot.encoders[idx];
-      if (encoder) {
-        const { name, value } = encoder;
-        this.updateEncoderName(idx, name);
-        // TODO: "disabled mode"
-        this.updateEncoderValue(idx, value ?? 0);
-      } else {
-        // TODO: "disabled mode"
-        // this.updateEncoderDisable()
-      }
-    }
-    for (let idx = 0; idx < snapshot.pads.length; idx++) {
-      this.updatePadColor(idx, snapshot.pads[idx]);
-    }
-    this.padMode = snapshot.padMode;
   }
 
   changePage(page: UIPage): void {

@@ -12,17 +12,6 @@ import { VirtualControllerSurface } from './VirtualControllerSurface';
 /**
  * This is an abstraction allowing the code to treat a virtual controller and
  * hardware controller as if it was just dealing with a single controller.
- *
- * One weird aspect of this is that any "implicit state" on a controller needs
- * to be duplicated to the other controller - e.g. setting a MIDI CC on one
- * controller needs to update that CC on the other. One way to do this might
- * just be to regularly send resetFromState() snapshots. Another could be to
- * just send the snapshot to the Launchkey after an event from the virtual
- * controller is handled, or vice versa. Both of these would require "waiting
- * for" the state to be updated though, which is challenging.
- *
- * Really need to start figuring out whether the Launchkey can handle constant
- * snapshots.
  */
 export class ControllerSurfaceGroup extends ControllerSurface {
   private virtualController: VirtualControllerSurface;
@@ -68,10 +57,6 @@ export class ControllerSurfaceGroup extends ControllerSurface {
     this.eachController((c) => c.changePadMode(padMode));
   };
 
-  resetFromState = (snapshot: ControllerState) => {
-    this.eachController((c) => c.resetFromState(snapshot));
-  };
-
   updateEncoderName = (encoderIndex: number, name: string) => {
     this.eachController((c) => c.updateEncoderName(encoderIndex, name));
   };
@@ -82,6 +67,10 @@ export class ControllerSurfaceGroup extends ControllerSurface {
 
   updatePadColor = (padIndex: number, color: PadColor) => {
     this.eachController((c) => c.updatePadColor(padIndex, color));
+  };
+
+  handleStateUpdate = (snapshot: ControllerState) => {
+    this.eachController((c) => c.handleStateUpdate(snapshot));
   };
 
   private eachController(cb: (controller: ControllerSurface) => void) {

@@ -1,5 +1,4 @@
 import { produce } from 'immer';
-import { ControllerState } from './ControllerState';
 import { ControllerSurface } from './ControllerSurface';
 import { PadColor } from '../ui/uiModels';
 
@@ -58,17 +57,6 @@ export class VirtualControllerSurface extends ControllerSurface {
   initController(): void {}
 
   teardownController(): void {}
-
-  resetFromState(snapshot: ControllerState): void {
-    this.state = {
-      encoders: snapshot.encoders.map((encoder) => ({
-        label: encoder?.name ?? null,
-        value: encoder?.value ?? null,
-      })),
-      pads: snapshot.pads.map((color) => ({ color })),
-    };
-    this.updateSubscribers();
-  }
 
   changePage(): void {
     // no-op since we don't have a visual display of this

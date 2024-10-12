@@ -2,8 +2,19 @@ import { useEffect, useRef } from 'react';
 import { useEliseContext } from '../state/useEliseContext';
 import { useMidiController } from './useMidiController';
 import { PAD_HOLD_TIME } from '../ui/uiConstants';
-import { getHeldStepIndex } from '../ui/getHeldStepIndex';
-import { EliseState, insertNewStep } from '../state/state';
+import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
+import { EliseState } from '../state/state';
+import { getControllerState } from './ControllerState';
+import {
+  changePadMode,
+  changeScene,
+  changeTrack,
+  enableProtectHeldPadDeletion,
+  insertNewStep,
+  removeStep,
+  setHeldPad,
+  unsetHeldPad,
+} from '../state/updateState';
 
 // This is basically stopgap non-architecture.
 //
@@ -23,6 +34,9 @@ export function ControllerMessageHandler() {
   // re-running and triggering a render and all that
   const stateRef = useRef<EliseState>(state);
   useEffect(() => {
+    if (stateRef.current !== state) {
+      controller?.handleStateUpdate(getControllerState(state));
+    }
     stateRef.current = state;
   });
 
@@ -32,40 +46,35 @@ export function ControllerMessageHandler() {
     }
 
     function handlePadOn(padIndex: number) {
-      // TODO: IGNORE DRUM MODE
-      const now = Date.now();
-
       if (stateRef.current.ui.heldPad !== null) {
         return;
       }
 
-      update((draft) => {
-        const { currentTrack, currentPattern } = draft.ui;
-        draft.ui.heldPad = padIndex;
-        draft.ui.heldPadStartTime = now;
+      if (stateRef.current.ui.padMode === 'clip') {
+        const { currentTrack, currentScene } = stateRef.current.ui;
 
-        const stepIndex = getHeldStepIndex(draft);
+        const stepIndex = getStepIndexFromPad(stateRef.current, padIndex);
         const existingStep =
-          draft.project.scenes[currentPattern].tracks[currentTrack].steps[
-            stepIndex!
-          ];
+          stateRef.current.project.scenes[currentScene].tracks[currentTrack]
+            .steps[stepIndex!];
 
         if (!existingStep) {
-          const stepIndex = getHeldStepIndex(draft);
-          insertNewStep(draft, currentPattern, currentTrack, stepIndex!);
-          draft.ui.protectHeldPadDeletion = true;
+          insertNewStep(update, currentScene, currentTrack, stepIndex);
         }
-      });
+      } else if (stateRef.current.ui.padMode === 'track') {
+        changeTrack(update, padIndex);
+      } else if (stateRef.current.ui.padMode === 'scene') {
+        changeScene(update, padIndex);
+      }
 
-      controller?.updatePadColor(padIndex, 'red');
+      setHeldPad(update, padIndex, Date.now());
 
       updateColorTimeout.current = setTimeout(() => {
-        controller?.updatePadColor(padIndex, 'white');
+        enableProtectHeldPadDeletion(update);
       }, PAD_HOLD_TIME);
     }
 
     function handlePadOff(padIndex: number) {
-      // TODO: IGNORE DRUM MODE
       clearTimeout(updateColorTimeout.current ?? undefined);
       updateColorTimeout.current = null;
 
@@ -73,43 +82,68 @@ export function ControllerMessageHandler() {
         return;
       }
 
-      const now = Date.now();
-
-      const currentState = stateRef.current;
-      const { currentTrack, currentPattern } = currentState.ui;
-      const stepIndex = getHeldStepIndex(currentState);
-      update((draft) => {
-        draft.ui.heldPad = null;
-      });
-      const delta = now - (currentState.ui.heldPadStartTime ?? 0);
-
-      if (stepIndex !== null) {
-        if (delta < PAD_HOLD_TIME && !currentState.ui.protectHeldPadDeletion) {
-          // turn off the step
-          update((draft) => {
-            draft.project.scenes[currentPattern].tracks[currentTrack].steps[
-              stepIndex
-            ] = null;
-          });
-          controller?.updatePadColor(padIndex, 'off');
-        } else {
-          // plocked stuff so just set back to green
-          controller?.updatePadColor(padIndex, 'green');
+      if (stateRef.current.ui.padMode === 'clip') {
+        const { currentTrack, currentScene } = stateRef.current.ui;
+        const stepIndex = getStepIndexFromPad(stateRef.current, padIndex);
+        if (stepIndex !== null) {
+          if (!stateRef.current.ui.protectHeldPadDeletion) {
+            removeStep(update, currentScene, currentTrack, stepIndex);
+          }
         }
-      } else {
-        controller?.updatePadColor(padIndex, 'green');
       }
-      update((draft) => {
-        draft.ui.protectHeldPadDeletion = false;
-      });
+
+      unsetHeldPad(update);
+    }
+
+    function handleEnterPadClipMode() {
+      if (stateRef.current.ui.heldPad !== null) {
+        handlePadOff(stateRef.current.ui.heldPad);
+      }
+      changePadMode(update, 'clip');
+    }
+    function handleEnterPadSceneMode() {
+      if (stateRef.current.ui.heldPad !== null) {
+        handlePadOff(stateRef.current.ui.heldPad);
+      }
+      changePadMode(update, 'scene');
+    }
+    function handleEnterPadTrackMode() {
+      if (stateRef.current.ui.heldPad !== null) {
+        handlePadOff(stateRef.current.ui.heldPad);
+      }
+      changePadMode(update, 'track');
     }
 
     controller.on('padOn', handlePadOn);
     controller.on('padOff', handlePadOff);
+    // controller.on('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
+    // controller.on('relativeEncoderUpdated', handleRelativeEncoderUpdated);
+    controller.on('enterPadClipMode', handleEnterPadClipMode);
+    controller.on('enterPadSceneMode', handleEnterPadSceneMode);
+    controller.on('enterPadTrackMode', handleEnterPadTrackMode);
+    // controller.on('enterPadMuteMode', handleEnterPadMuteMode);
+    // controller.on('enterPadDrumMode', handleEnterPadDrumMode);
+    // controller.on('enterPadChromaticMode', handleEnterPadChromaticMode);
+    // controller.on('nextClipBar', handleNextClipBar);
+    // controller.on('prevClipBar', handlePrevClipBar);
+    // controller.on('nextEncoderBank', handleNextEncoderBank);
+    // controller.on('prevEncoderBank', handlePrevEncoderBank);
 
     return () => {
       controller.off('padOn', handlePadOn);
       controller.off('padOff', handlePadOff);
+      // controller.off('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
+      // controller.off('relativeEncoderUpdated', handleRelativeEncoderUpdated);
+      controller.off('enterPadClipMode', handleEnterPadClipMode);
+      controller.off('enterPadSceneMode', handleEnterPadSceneMode);
+      controller.off('enterPadTrackMode', handleEnterPadTrackMode);
+      // controller.off('enterPadMuteMode', handleEnterPadMuteMode);
+      // controller.off('enterPadDrumMode', handleEnterPadDrumMode);
+      // controller.off('enterPadChromaticMode', handleEnterPadChromaticMode);
+      // controller.off('nextClipBar', handleNextClipBar);
+      // controller.off('prevClipBar', handlePrevClipBar);
+      // controller.off('nextEncoderBank', handleNextEncoderBank);
+      // controller.off('prevEncoderBank', handlePrevEncoderBank);
     };
   }, [update, controller]);
 
