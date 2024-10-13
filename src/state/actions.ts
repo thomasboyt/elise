@@ -1,11 +1,6 @@
 import { Updater } from 'use-immer';
 import { EliseState } from './state';
-import {
-  getHeldStepIndex,
-  getStepIndexFromPad,
-  getStepOrThrow,
-  getTrackOrThrow,
-} from './accessors';
+import { getHeldStep, getStepIndexFromPad, getTrackOrThrow } from './accessors';
 import {
   changePadMode,
   changeScene,
@@ -121,22 +116,11 @@ export function handleKeyboardNoteOn(
     return;
   }
 
-  let stepIndex = null;
-  if (currentState.ui.padMode === 'clip') {
-    stepIndex = getHeldStepIndex(currentState);
-  }
-
   if (currentState.ui.heldNotes.length === 0) {
     // starting a new "chord"
     update((draft) => {
-      const { currentTrack, currentScene } = currentState.ui;
-      if (stepIndex !== null) {
-        const step = getStepOrThrow(
-          draft,
-          currentScene,
-          currentTrack,
-          stepIndex,
-        );
+      const step = getHeldStep(draft);
+      if (step) {
         step.notes = [note];
       } else {
         draft.ui.nextStepSettings.notes = [note];
@@ -145,27 +129,19 @@ export function handleKeyboardNoteOn(
   } else {
     // add to existing chord
     update((draft) => {
-      const { currentTrack, currentScene } = currentState.ui;
-      if (stepIndex !== null) {
-        const step = getStepOrThrow(
-          draft,
-          currentScene,
-          currentTrack,
-          stepIndex,
-        );
-        if (!step.notes.includes(note)) {
-          step.notes.push(note);
-        }
-      } else {
-        if (!draft.ui.nextStepSettings.notes.includes(note)) {
-          draft.ui.nextStepSettings.notes.push(note);
-        }
+      const step = getHeldStep(draft);
+      if (step && !step.notes.includes(note)) {
+        step.notes.push(note);
+      } else if (!draft.ui.nextStepSettings.notes.includes(note)) {
+        draft.ui.nextStepSettings.notes.push(note);
       }
     });
   }
 
   update((draft) => {
-    draft.ui.heldNotes.push(note);
+    if (!draft.ui.heldNotes.includes(note)) {
+      draft.ui.heldNotes.push(note);
+    }
   });
 
   // TODO: start note for live playback, somehow

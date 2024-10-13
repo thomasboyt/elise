@@ -10,26 +10,26 @@ interface Props {
   children: ReactNode;
 }
 
-export function EliseUISection(props: Props) {
+export function EliseUIEncoderBank(props: Props) {
   const { label, encoderBank, children } = props;
   const { state, update } = useEliseContext();
 
   return (
-    <section className={css.section}>
+    <section className={css.encoderBank}>
       <div
         onClick={() =>
           update((draft) => {
             draft.ui.encoderBank = encoderBank;
           })
         }
-        className={classNames(css.sectionHeaderContainer, {
-          [css.sectionHeaderContainerActive]:
+        className={classNames(css.encoderBankHeaderContainer, {
+          [css.encoderBankHeaderContainerActive]:
             encoderBank === state.ui.encoderBank,
         })}
       >
-        <h3 className={css.sectionHeader}>{label}</h3>
+        <h3 className={css.encoderBankHeader}>{label}</h3>
       </div>
-      <div className={css.sectionContent}>{children}</div>
+      <div className={css.encoderBankContent}>{children}</div>
     </section>
   );
 }

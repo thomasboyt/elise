@@ -31,33 +31,52 @@
 .display {
   flex: 0 1 100vh;
   overflow-y: auto;
+  display: flex;
+  flex-flow: column;
 }
 
-.section {
+.topBar {
+  flex: 0 0 auto;
+}
+.topButtons {
+  flex: 0 0 auto;
+}
+.encoderBanks {
+  flex: 1 0 auto;
+}
+.padButtons {
+  flex: 0 0 auto;
+}
+
+.encoderBanks {
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.encoderBank {
   display: flex;
-  min-height: 100px;
   border-bottom: 1px var(--orange) solid;
 }
 
-.section:first-of-type {
+.encoderBank:first-of-type {
   border-top: 1px var(--orange) solid;
 }
 
-.sectionHeaderContainer {
+.encoderBankHeaderContainer {
   flex: 0 0 auto;
   position: relative;
-  width: 60px;
+  width: 40px;
   text-align: center;
   color: var(--orange);
   border-right: 1px var(--orange) solid;
 }
 
-.sectionHeaderContainerActive {
+.encoderBankHeaderContainerActive {
   color: black;
   background: var(--orange);
 }
 
-.sectionHeader {
+.encoderBankHeader {
   margin: 0;
   position: absolute;
   top: 50%;
@@ -65,7 +84,7 @@
   transform: translateX(-50%) translateY(-50%) rotate(-90deg);
 }
 
-.sectionContent {
+.encoderBankContent {
   flex: 0 1 100%;
   padding-left: 10px;
 }
@@ -94,4 +113,27 @@
 
 .padLabel {
   font-size: 24px;
+}
+
+.buttonRow {
+  display: flex;
+  height: 32px;
+}
+
+.buttonRow button {
+  flex: 1 0 auto;
+  border: 1px var(--orange) solid;
+  background: black;
+  color: var(--orange);
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.buttonRow button:disabled {
+  opacity: 0.5;
+}
+
+.buttonRow button.activeButton {
+  background: var(--orange);
+  color: black;
 }
