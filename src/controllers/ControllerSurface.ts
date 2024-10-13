@@ -86,6 +86,7 @@ export abstract class ControllerSurface
   resetState(snapshot: ControllerState): void {
     this.lastSnapshot = snapshot;
     this.changePadMode(snapshot.padMode);
+    this.changeEncoderBank(snapshot.encoderBank);
     for (let padIndex = 0; padIndex < snapshot.pads.length; padIndex += 1) {
       this.updatePadColor(padIndex, snapshot.pads[padIndex]);
     }
@@ -112,6 +113,9 @@ export abstract class ControllerSurface
 
     if (snapshot.padMode !== prev.padMode) {
       this.changePadMode(snapshot.padMode);
+    }
+    if (snapshot.encoderBank !== prev.encoderBank) {
+      this.changeEncoderBank(snapshot.encoderBank);
     }
 
     for (let padIndex = 0; padIndex < snapshot.pads.length; padIndex += 1) {

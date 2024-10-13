@@ -15,6 +15,7 @@ import {
   PadMode as LKPadMode,
   regularButtonCCs,
   relativeEncoderCcOffset,
+  displayTargets,
 } from './LaunchkeyConstants';
 import { EncoderBank } from '../../state/state';
 import { PadColor, PadMode } from '../../ui/uiModels';
@@ -73,6 +74,32 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
 
     this.launchkeyPadMode = 'daw';
     this.launchkeyEncoderMode = 'plugin';
+
+    this.setStationaryDisplay('Line One', 'Line Two');
+
+    for (
+      let target = displayEncoderTargetOffset;
+      target < displayEncoderTargetOffset + 8;
+      target += 1
+    ) {
+      this.sendRawMessage(
+        launchkeySysexMessageFactories.configureDisplay(
+          this.sku,
+          target,
+          'twoLineNameTextParameter',
+          true,
+        ),
+      );
+    }
+
+    // Page 14
+    // TODO: GET LED BRIGHTNESS LEVEL
+    const buttonCCs = this.sku === 'mini' ? miniButtonCCs : regularButtonCCs;
+    this.dawOutput.channels[4].sendControlChange(
+      buttonCCs['Pads Function'],
+      63,
+    );
+    this.dawOutput.channels[4].sendControlChange(buttonCCs['Pads Launch'], 63);
   }
 
   teardownController(): void {
@@ -84,12 +111,28 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
 
   changeEncoderBank(encoderBank: EncoderBank): void {
     this.logOutgoing('Change encoder bank', encoderBank);
-    // TODO: set some kind of display indicator?
+    // TODO: this is a goofy place for this logic
+    if (encoderBank === 'global') {
+      this.setEncoderBankButtons(false, false);
+    } else if (encoderBank === 'note') {
+      this.setEncoderBankButtons(false, true);
+    } else if (encoderBank === 'parameters') {
+      this.setEncoderBankButtons(true, true);
+    } else if (encoderBank === 'lfo') {
+      this.setEncoderBankButtons(true, false);
+    }
   }
 
   changePadMode(padMode: PadMode): void {
     this.logOutgoing('Change pad mode', padMode);
     this.padMode = padMode;
+    if (this.padMode === 'clip') {
+      this.setStationaryDisplay('Sequence', 'Bar x of y');
+    } else if (this.padMode === 'track') {
+      this.setStationaryDisplay('', 'Select track');
+    } else if (this.padMode === 'scene') {
+      this.setStationaryDisplay('', 'Select scene');
+    }
   }
 
   /**
@@ -153,11 +196,66 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     if (midiCc) {
       this.logOutgoing('Set encoder value ', encoderIndex, value);
       this.dawOutput.channels[16].sendControlChange(midiCc, value);
+      this.sendRawMessage(
+        launchkeySysexMessageFactories.setDisplayText(
+          this.sku,
+          displayEncoderTargetOffset + encoderIndex,
+          1,
+          `${value}`, // TODO: use string label
+        ),
+      );
     }
   }
 
   private sendRawMessage(data: number[]) {
     this.dawOutput.send(data);
+  }
+
+  private setStationaryDisplay(lineOne: string, lineTwo: string) {
+    this.sendRawMessage(
+      launchkeySysexMessageFactories.configureDisplay(
+        this.sku,
+        displayTargets.stationary,
+        'twoLineNameTextParameter',
+        false,
+      ),
+    );
+    this.sendRawMessage(
+      launchkeySysexMessageFactories.setDisplayText(
+        this.sku,
+        displayTargets.stationary,
+        0,
+        lineOne,
+      ),
+    );
+    this.sendRawMessage(
+      launchkeySysexMessageFactories.setDisplayText(
+        this.sku,
+        displayTargets.stationary,
+        1,
+        lineTwo,
+      ),
+    );
+    this.sendRawMessage(
+      launchkeySysexMessageFactories.triggerDisplay(
+        this.sku,
+        displayTargets.stationary,
+      ),
+    );
+  }
+
+  private setEncoderBankButtons(upState: boolean, downState: boolean) {
+    // Page 14
+    // TODO: GET LED BRIGHTNESS LEVEL
+    const buttonCCs = this.sku === 'mini' ? miniButtonCCs : regularButtonCCs;
+    this.dawOutput.channels[4].sendControlChange(
+      buttonCCs['Encoders Up'],
+      upState ? 63 : 0,
+    );
+    this.dawOutput.channels[4].sendControlChange(
+      buttonCCs['Encoders Down'],
+      downState ? 63 : 0,
+    );
   }
 
   // I hate the boilerplate and having to remember to unregister, but don't know

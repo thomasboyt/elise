@@ -159,6 +159,27 @@ export const absoluteEncoderCcOffset = 21;
 export const relativeEncoderCcOffset = 85;
 export const faderCcOffset = 5;
 export const faderButtonCcOffset = 37;
+
 // Page 17
-export const displayEncoderTargetOffset = 5; // 05h
-export const displayFaderTargetOffset = 21; // 15h
+export const displayEncoderTargetOffset = 21; // 15h
+export const displayFaderTargetOffset = 5; // 05h
+
+// Page 17
+export const displayTargets = {
+  stationary: 32,
+  globalTemporary: 33,
+  dawPadMode: 34,
+  dawDrumPadMode: 35,
+  mixerEncoderMode: 36,
+  pluginEncoderMode: 37,
+  sendsEncoderMode: 38,
+  transportEncoderMode: 39,
+  volumeFaderMode: 40,
+};
+
+export const displayArrangementIds = {
+  twoLineNameTextParameter: 1,
+  threeLineTitleNameTextParameter: 2,
+  nameAnd2x4Parameters: 3,
+  twoLineNameNumberParameter: 4,
+};

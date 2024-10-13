@@ -1,5 +1,5 @@
 import { Updater } from 'use-immer';
-import { EliseState } from './state';
+import { EliseState, EncoderBank } from './state';
 import { getHeldStep, getStepIndexFromPad, getTrackOrThrow } from './accessors';
 import {
   changePadMode,
@@ -163,4 +163,50 @@ export function handleKeyboardNoteOff(
     draft.ui.heldNotes.splice(index, 1);
   });
   // TODO: stop note for live playback, somehow
+}
+
+export function handlePrevEncoderBank(
+  currentState: EliseState,
+  update: Updater<EliseState>,
+) {
+  let prevPage: EncoderBank;
+  if (currentState.ui.encoderBank === 'global') {
+    return;
+  }
+  if (currentState.ui.encoderBank === 'note') {
+    return;
+  }
+  if (currentState.ui.encoderBank === 'parameters') {
+    prevPage = 'note';
+  }
+  if (currentState.ui.encoderBank === 'lfo') {
+    prevPage = 'parameters';
+  }
+
+  update((draft) => {
+    draft.ui.encoderBank = prevPage;
+  });
+}
+
+export function handleNextEncoderBank(
+  currentState: EliseState,
+  update: Updater<EliseState>,
+) {
+  let nextPage: EncoderBank;
+  if (currentState.ui.encoderBank === 'global') {
+    return;
+  }
+  if (currentState.ui.encoderBank === 'note') {
+    nextPage = 'parameters';
+  }
+  if (currentState.ui.encoderBank === 'parameters') {
+    nextPage = 'lfo';
+  }
+  if (currentState.ui.encoderBank === 'lfo') {
+    return;
+  }
+
+  update((draft) => {
+    draft.ui.encoderBank = nextPage;
+  });
 }

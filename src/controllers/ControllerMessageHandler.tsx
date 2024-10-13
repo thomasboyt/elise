@@ -12,6 +12,8 @@ import {
   handleKeyboardNoteOff,
   handlePadOff,
   handlePadOn,
+  handlePrevEncoderBank,
+  handleNextEncoderBank,
 } from '../state/actions';
 import {
   getUIMidiParameter,
@@ -75,6 +77,8 @@ export function ControllerMessageHandler() {
     const boundEnterPadClipMode = bind(handleEnterPadClipMode);
     const boundEnterPadSceneMode = bind(handleEnterPadSceneMode);
     const boundEnterPadTrackMode = bind(handleEnterPadTrackMode);
+    const boundNextEncoderBank = bind(handleNextEncoderBank);
+    const boundPrevEncoderBank = bind(handlePrevEncoderBank);
     const boundKeyboardNoteOn = bind(handleKeyboardNoteOn);
     const boundKeyboardNoteOff = bind(handleKeyboardNoteOff);
 
@@ -90,8 +94,8 @@ export function ControllerMessageHandler() {
     // controller.on('prevClipBar', handlePrevClipBar);
     controller.on('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
     // controller.on('relativeEncoderUpdated', handleRelativeEncoderUpdated);
-    // controller.on('nextEncoderBank', handleNextEncoderBank);
-    // controller.on('prevEncoderBank', handlePrevEncoderBank);
+    controller.on('nextEncoderBank', boundNextEncoderBank);
+    controller.on('prevEncoderBank', boundPrevEncoderBank);
     controller.on('keyboardNoteOn', boundKeyboardNoteOn);
     controller.on('keyboardNoteOff', boundKeyboardNoteOff);
 
@@ -108,8 +112,8 @@ export function ControllerMessageHandler() {
       // controller.off('prevClipBar', handlePrevClipBar);
       controller.off('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
       // controller.off('relativeEncoderUpdated', handleRelativeEncoderUpdated);
-      // controller.off('nextEncoderBank', handleNextEncoderBank);
-      // controller.off('prevEncoderBank', handlePrevEncoderBank);
+      controller.off('nextEncoderBank', boundNextEncoderBank);
+      controller.off('prevEncoderBank', boundPrevEncoderBank);
       controller.off('keyboardNoteOn', boundKeyboardNoteOn);
       controller.off('keyboardNoteOff', boundKeyboardNoteOff);
     };

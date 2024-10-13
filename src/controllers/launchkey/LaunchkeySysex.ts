@@ -3,6 +3,7 @@
 // https://fael-downloads-prod.focusrite.com/customer/prod/downloads/launchkey_mk4_49_user_guide_v1.1_pdf-en.pdf
 
 import { getSysExPrefix, LaunchkeySkuType } from './LaunchkeyConstants';
+import { displayArrangementIds } from './LaunchkeyConstants';
 
 function textToAscii(text: string): number[] {
   const ascii = [];
@@ -29,11 +30,26 @@ export const launchkeySysexMessageFactories = {
     // Page 16: RGB colour
     return [...getSysExPrefix(sku), 1, 67, padId, r, g, b, 247];
   },
-  configureDisplay(sku: LaunchkeySkuType, target: number, config: number) {
+  configureDisplay(
+    sku: LaunchkeySkuType,
+    target: number,
+    arrangement: keyof typeof displayArrangementIds,
+    allowTempDisplay: boolean,
+  ) {
     // Page 17: Setting displays
     // Page 18: Config
     // F0h 00h 20h 29h 02h 14h 04h <target> <config> F7h
+    let config = displayArrangementIds[arrangement];
+    if (allowTempDisplay) {
+      config += 0b1100000;
+    }
     return [...getSysExPrefix(sku), 4, target, config, 247];
+  },
+  triggerDisplay(sku: LaunchkeySkuType, target: number) {
+    return [...getSysExPrefix(sku), 4, target, 127, 247];
+  },
+  cancelDisplay(sku: LaunchkeySkuType, target: number) {
+    return [...getSysExPrefix(sku), 4, target, 0, 247];
   },
   setDisplayText(
     sku: LaunchkeySkuType,
