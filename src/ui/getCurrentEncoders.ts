@@ -46,7 +46,7 @@ export function getParameterEncoders(state: EliseState) {
   const heldStep = padMode === 'clip' ? getHeldStepIndex(state) : null;
   const currentNote = heldStep !== null ? track.steps[heldStep] : null;
 
-  const parameters = track.parameterConfiguration.parameters;
+  const parameters = track.parameterConfiguration;
   const trackParameters = track.parameterValues;
   const stepParameters = currentNote?.parameterLocks ?? null;
   return parameters.map((parameterConfiguration, idx): Encoder => {
