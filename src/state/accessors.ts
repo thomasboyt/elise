@@ -44,31 +44,6 @@ export function getStep(
   );
 }
 
-export function getHeldStepIndex(state: EliseState): number | null {
-  if (state.ui.padMode !== 'clip') {
-    throw new Error('Refusing to get held step index in non-clip mode');
-  }
-
-  const { heldPad } = state.ui;
-  if (heldPad === null) {
-    return null;
-  }
-  return getStepIndexFromPad(state, heldPad);
-}
-
-export function getStepIndexFromPad(
-  state: EliseState,
-  padIndex: number,
-): number {
-  if (state.ui.padMode !== 'clip') {
-    throw new Error('Refusing to get held step index in non-clip mode');
-  }
-
-  const { currentScene, currentTrack, currentStepsPage } = state.ui;
-  const track = getTrackOrThrow(state, currentScene, currentTrack);
-  const offset = currentStepsPage * track.pageLength;
-  return offset + padIndex;
-}
 export function getStepOrThrow(
   state: EliseState,
   sceneIndex: number,
@@ -84,17 +59,45 @@ export function getStepOrThrow(
   return step;
 }
 
+export function getHeldStepIndex(state: EliseState): number | null {
+  if (state.ui.padMode !== 'clip') {
+    return null;
+  }
+
+  const { heldPad } = state.ui;
+  if (heldPad === null) {
+    return null;
+  }
+  return getStepIndexFromPadInClipMode(state, heldPad);
+}
+
+export function getStepIndexFromPadInClipMode(
+  state: EliseState,
+  padIndex: number,
+): number {
+  if (state.ui.padMode !== 'clip') {
+    throw new Error('Refusing to get held step index in non-clip mode');
+  }
+
+  const { currentScene, currentTrack, currentStepsPage } = state.ui;
+  const track = getTrackOrThrow(state, currentScene, currentTrack);
+  const offset = currentStepsPage * track.pageLength;
+  return offset + padIndex;
+}
+
 export function getHeldStep(state: EliseState): MidiStep | null {
-  const currentStepIndex =
-    state.ui.heldPad === null
-      ? null
-      : getStepIndexFromPad(state, state.ui.heldPad);
-  return currentStepIndex === null
-    ? null
-    : getStepOrThrow(
-        state,
-        state.ui.currentScene,
-        state.ui.currentTrack,
-        currentStepIndex,
-      );
+  if (state.ui.heldPad === null || state.ui.padMode !== 'clip') {
+    return null;
+  }
+
+  const currentStepIndex = getStepIndexFromPadInClipMode(
+    state,
+    state.ui.heldPad,
+  );
+  return getStepOrThrow(
+    state,
+    state.ui.currentScene,
+    state.ui.currentTrack,
+    currentStepIndex,
+  );
 }

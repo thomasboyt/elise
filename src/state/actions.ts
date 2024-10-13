@@ -1,6 +1,10 @@
 import { Updater } from 'use-immer';
 import { EliseState, EncoderBank } from './state';
-import { getHeldStep, getStepIndexFromPad, getTrackOrThrow } from './accessors';
+import {
+  getHeldStep,
+  getStepIndexFromPadInClipMode,
+  getTrackOrThrow,
+} from './accessors';
 import {
   changePadMode,
   changeScene,
@@ -28,7 +32,7 @@ export function handlePadOn(
   if (currentState.ui.padMode === 'clip') {
     const { currentTrack, currentScene } = currentState.ui;
 
-    const stepIndex = getStepIndexFromPad(currentState, padIndex);
+    const stepIndex = getStepIndexFromPadInClipMode(currentState, padIndex);
     const existingStep = getTrackOrThrow(
       currentState,
       currentScene,
@@ -65,7 +69,7 @@ export function handlePadOff(
 
   if (currentState.ui.padMode === 'clip') {
     const { currentTrack, currentScene } = currentState.ui;
-    const stepIndex = getStepIndexFromPad(currentState, padIndex);
+    const stepIndex = getStepIndexFromPadInClipMode(currentState, padIndex);
     if (stepIndex !== null) {
       if (!currentState.ui.protectHeldPadDeletion) {
         removeStep(update, currentScene, currentTrack, stepIndex);

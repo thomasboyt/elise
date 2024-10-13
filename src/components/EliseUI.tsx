@@ -15,7 +15,7 @@ import { EliseUIParameterList } from './EliseUIParameterList';
 import { EliseUINoteDisplay } from './EliseUINoteDisplay';
 import { getUIMidiParameter, noteParameters } from '../ui/uiParameters';
 import { EliseUIButtonRow } from './EliseUIButtonRow';
-import { getStepIndexFromPad } from '../state/accessors';
+import { getStepIndexFromPadInClipMode } from '../state/accessors';
 import css from './EliseUI.module.css';
 
 export function EliseUI() {
@@ -23,9 +23,9 @@ export function EliseUI() {
   const hardwareConnected = useHardwareConnected();
 
   const currentStepIndex =
-    state.ui.heldPad === null
+    state.ui.heldPad === null || state.ui.padMode !== 'clip'
       ? null
-      : getStepIndexFromPad(state, state.ui.heldPad);
+      : getStepIndexFromPadInClipMode(state, state.ui.heldPad);
 
   const pads = getPadColors(state);
   const padMode = state.ui.padMode;
