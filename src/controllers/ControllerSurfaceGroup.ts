@@ -21,9 +21,10 @@ export class ControllerSurfaceGroup
   private virtualController: VirtualControllerSurface;
   private hardwareController?: ControllerSurface;
 
-  constructor() {
+  constructor(virtualControllerSnapshot: ControllerState) {
     super();
     this.virtualController = new VirtualControllerSurface();
+    this.virtualController.resetState(virtualControllerSnapshot);
     this.registerEvents(this.virtualController);
   }
 

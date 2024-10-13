@@ -51,7 +51,9 @@ export function MIDIControllerProvider({ children }: Props) {
   useEffect(() => {
     stateRef.current = state;
   });
-  const [controllerSurfaceGroup] = useState(() => new ControllerSurfaceGroup());
+  const [controllerSurfaceGroup] = useState(
+    () => new ControllerSurfaceGroup(getControllerState(state)),
+  );
   const [hardwareConnected, setHardwareConnected] = useState(false);
 
   useEffect(() => {

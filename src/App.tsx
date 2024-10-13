@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { WebMidi } from 'webmidi';
-// import { DebugLog } from './DebugLog';
 import { MIDIControllerProvider } from './controllers/MIDIControllerContext';
-import { DebugControls } from './DebugControls';
 import { EliseContextProvider } from './state/EliseContextProvider';
 import { StateTree } from './StateTree';
 import { ControllerMessageHandler } from './controllers/ControllerMessageHandler';
@@ -40,9 +38,7 @@ function App() {
           <EliseUI />
           <ControllerMessageHandler />
           <div>
-            <DebugControls />
             <VirtualController />
-            {/* <DebugLog /> */}
             <StateTree />
           </div>
         </MIDIControllerProvider>
