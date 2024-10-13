@@ -1,9 +1,13 @@
 import { useHardwareConnected } from '../controllers/useMidiController';
 import { getStepOrThrow, getTrackOrThrow } from '../state/accessors';
+import { handlePadOff, handlePadOn } from '../state/actions';
 import { EliseState, MidiParameter, MidiStep } from '../state/state';
 import { parameterPlockKey } from '../state/stateUtils';
 import { useEliseContext } from '../state/useEliseContext';
 import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
+import { getPadColors } from '../ui/getPadColors';
+import { ElisePad } from './ElisePad';
+import css from './EliseUI.module.css';
 
 function getCurrentStep(state: EliseState): MidiStep | null {
   const currentStepIndex =
@@ -63,7 +67,7 @@ function getParameterLabel(parameter: MidiParameter): string {
 }
 
 export function EliseUI() {
-  const { state } = useEliseContext();
+  const { state, update } = useEliseContext();
   const hardwareConnected = useHardwareConnected();
 
   const currentStepIndex =
@@ -84,30 +88,51 @@ export function EliseUI() {
 
   const parameterItems = getParameterItems(state);
 
+  const pads = getPadColors(state);
+  console.log(pads);
+
   return (
-    <div style={{ height: '300px' }}>
-      <p>
-        Launchkey{' '}
-        {hardwareConnected ? <strong>connected</strong> : 'disconnected'}
-      </p>
-      <p>{`Scene: ${state.ui.currentScene} -> Track: ${state.ui.currentTrack}`}</p>
-      <p>Bar: {state.ui.currentStepsPage}</p>
-      <p>
-        {currentStep ? (
-          <span>Current step: {currentStepIndex}</span>
-        ) : (
-          <span>No step</span>
-        )}
-      </p>
-      <p>
-        Notes: {noteValues.notes} / Velocity: {noteValues.velocity} / Length:{' '}
-        {noteValues.gate} / Offset: {noteValues.offset}
-      </p>
-      <ul>
-        {parameterItems.map((item, idx) => (
-          <li key={idx}>
-            {getParameterLabel(item.parameter)}: {item.value ?? '---'}
-          </li>
+    <div className={css.eliseUi}>
+      <div className={css.display}>
+        <p>
+          Launchkey{' '}
+          {hardwareConnected ? <strong>connected</strong> : 'disconnected'}
+        </p>
+        <p>{`Scene: ${state.ui.currentScene} -> Track: ${state.ui.currentTrack}`}</p>
+        <p>Bar: {state.ui.currentStepsPage}</p>
+        <p>
+          {currentStep ? (
+            <span>Current step: {currentStepIndex}</span>
+          ) : (
+            <span>No step</span>
+          )}
+        </p>
+        <p>
+          Notes: {noteValues.notes} / Velocity: {noteValues.velocity} / Length:{' '}
+          {noteValues.gate} / Offset: {noteValues.offset}
+        </p>
+        <ul>
+          {parameterItems.map((item, idx) => (
+            <li key={idx}>
+              {getParameterLabel(item.parameter)}: {item.value ?? '---'}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <ul className={css.pads}>
+        {pads.map((color, idx) => (
+          <ElisePad
+            key={idx}
+            padIndex={idx}
+            color={color}
+            onDown={() => {
+              handlePadOn(state, update, idx);
+            }}
+            onUp={() => {
+              handlePadOff(state, update, idx);
+            }}
+          />
         ))}
       </ul>
     </div>

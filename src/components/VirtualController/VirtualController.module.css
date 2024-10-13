@@ -1,6 +1,6 @@
 .VirtualController {
   width: 600px;
-  height: 400px;
+  height: 280px;
   border: 1px solid black;
   overflow: hidden;
   display: flex;
@@ -25,7 +25,7 @@
 
 .encoders {
   composes: gridContainer listReset;
-  flex: 0 0 60%;
+  flex: 0 0 40%;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   border-bottom: 1px solid black;
@@ -46,7 +46,6 @@
 
 .encoder form {
   display: flex;
-  margin-top: 20px;
 }
 
 .encoder form input {

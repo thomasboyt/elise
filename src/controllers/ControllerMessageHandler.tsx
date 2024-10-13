@@ -1,23 +1,21 @@
 import { useEffect, useRef } from 'react';
 import { useEliseContext } from '../state/useEliseContext';
 import { useMidiController } from './useMidiController';
-import { PAD_HOLD_TIME } from '../ui/uiConstants';
 import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
 import { EliseState, NoteParameter } from '../state/state';
 import { getControllerState } from './ControllerState';
 import {
-  changePadMode,
-  changeScene,
-  changeTrack,
-  enableProtectHeldPadDeletion,
-  insertNewStep,
-  removeStep,
-  setHeldPad,
   setNextStepNoteParameter,
   setStepNoteParameter,
-  unsetHeldPad,
 } from '../state/updateState';
-import { getTrackOrThrow } from '../state/accessors';
+import {
+  handleEnterPadClipMode,
+  handleEnterPadSceneMode,
+  handleEnterPadTrackMode,
+  handlePadOff,
+  handlePadOn,
+} from '../state/actions';
+import { Updater } from 'use-immer';
 
 // This is basically stopgap non-architecture.
 //
@@ -30,7 +28,6 @@ import { getTrackOrThrow } from '../state/accessors';
 export function ControllerMessageHandler() {
   const controller = useMidiController();
   const { state, update } = useEliseContext();
-  const updateColorTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Stick current state in a ref so that the useEffect() with the
   // event listeners can reference current state without actually
@@ -46,77 +43,6 @@ export function ControllerMessageHandler() {
   useEffect(() => {
     if (!controller) {
       return;
-    }
-
-    function handlePadOn(padIndex: number) {
-      if (stateRef.current.ui.heldPad !== null) {
-        return;
-      }
-
-      if (stateRef.current.ui.padMode === 'clip') {
-        const { currentTrack, currentScene } = stateRef.current.ui;
-
-        const stepIndex = getStepIndexFromPad(stateRef.current, padIndex);
-        const existingStep = getTrackOrThrow(
-          stateRef.current,
-          currentScene,
-          currentTrack,
-        ).steps[stepIndex!];
-
-        if (!existingStep) {
-          insertNewStep(update, currentScene, currentTrack, stepIndex);
-        }
-      } else if (stateRef.current.ui.padMode === 'track') {
-        changeTrack(update, padIndex);
-      } else if (stateRef.current.ui.padMode === 'scene') {
-        changeScene(update, padIndex);
-      }
-
-      setHeldPad(update, padIndex, Date.now());
-
-      updateColorTimeout.current = setTimeout(() => {
-        enableProtectHeldPadDeletion(update);
-      }, PAD_HOLD_TIME);
-    }
-
-    function handlePadOff(padIndex: number) {
-      clearTimeout(updateColorTimeout.current ?? undefined);
-      updateColorTimeout.current = null;
-
-      if (stateRef.current.ui.heldPad !== padIndex) {
-        return;
-      }
-
-      if (stateRef.current.ui.padMode === 'clip') {
-        const { currentTrack, currentScene } = stateRef.current.ui;
-        const stepIndex = getStepIndexFromPad(stateRef.current, padIndex);
-        if (stepIndex !== null) {
-          if (!stateRef.current.ui.protectHeldPadDeletion) {
-            removeStep(update, currentScene, currentTrack, stepIndex);
-          }
-        }
-      }
-
-      unsetHeldPad(update);
-    }
-
-    function handleEnterPadClipMode() {
-      if (stateRef.current.ui.heldPad !== null) {
-        handlePadOff(stateRef.current.ui.heldPad);
-      }
-      changePadMode(update, 'clip');
-    }
-    function handleEnterPadSceneMode() {
-      if (stateRef.current.ui.heldPad !== null) {
-        handlePadOff(stateRef.current.ui.heldPad);
-      }
-      changePadMode(update, 'scene');
-    }
-    function handleEnterPadTrackMode() {
-      if (stateRef.current.ui.heldPad !== null) {
-        handlePadOff(stateRef.current.ui.heldPad);
-      }
-      changePadMode(update, 'track');
     }
 
     function handleAbsoluteEncoderUpdated(encoderIndex: number, value: number) {
@@ -157,11 +83,28 @@ export function ControllerMessageHandler() {
       }
     }
 
-    controller.on('padOn', handlePadOn);
-    controller.on('padOff', handlePadOff);
-    controller.on('enterPadClipMode', handleEnterPadClipMode);
-    controller.on('enterPadSceneMode', handleEnterPadSceneMode);
-    controller.on('enterPadTrackMode', handleEnterPadTrackMode);
+    // i am too tired to type this properly rn
+    // the ...args T[] bit is super not workin but at least it type checks
+    function bind<T>(
+      fn: (
+        state: EliseState,
+        update: Updater<EliseState>,
+        ...args: T[]
+      ) => void,
+    ) {
+      return (...args: T[]) => fn(stateRef.current, update, ...args);
+    }
+    const boundPadOn = bind(handlePadOn);
+    const boundPadOff = bind(handlePadOff);
+    const boundEnterPadClipMode = bind(handleEnterPadClipMode);
+    const boundEnterPadSceneMode = bind(handleEnterPadSceneMode);
+    const boundEnterPadTrackMode = bind(handleEnterPadTrackMode);
+
+    controller.on('padOn', boundPadOn);
+    controller.on('padOff', boundPadOff);
+    controller.on('enterPadClipMode', boundEnterPadClipMode);
+    controller.on('enterPadSceneMode', boundEnterPadSceneMode);
+    controller.on('enterPadTrackMode', boundEnterPadTrackMode);
     // controller.on('enterPadMuteMode', handleEnterPadMuteMode);
     // controller.on('enterPadDrumMode', handleEnterPadDrumMode);
     // controller.on('enterPadChromaticMode', handleEnterPadChromaticMode);
@@ -173,11 +116,11 @@ export function ControllerMessageHandler() {
     // controller.on('prevEncoderBank', handlePrevEncoderBank);
 
     return () => {
-      controller.off('padOn', handlePadOn);
-      controller.off('padOff', handlePadOff);
-      controller.off('enterPadClipMode', handleEnterPadClipMode);
-      controller.off('enterPadSceneMode', handleEnterPadSceneMode);
-      controller.off('enterPadTrackMode', handleEnterPadTrackMode);
+      controller.off('padOn', boundPadOn);
+      controller.off('padOff', boundPadOff);
+      controller.off('enterPadClipMode', boundEnterPadClipMode);
+      controller.off('enterPadSceneMode', boundEnterPadSceneMode);
+      controller.off('enterPadTrackMode', boundEnterPadTrackMode);
       // controller.off('enterPadMuteMode', handleEnterPadMuteMode);
       // controller.off('enterPadDrumMode', handleEnterPadDrumMode);
       // controller.off('enterPadChromaticMode', handleEnterPadChromaticMode);

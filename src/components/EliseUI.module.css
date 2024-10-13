@@ -1,0 +1,54 @@
+:root {
+  --orange: rgb(234, 207, 76);
+}
+
+.eliseUi {
+  height: 690px;
+  width: 1000px;
+  color: var(--orange);
+  background: black;
+  font-family: consolas, monaco, monospace;
+  display: flex;
+  flex-flow: column;
+}
+
+.gridContainer {
+  display: grid;
+
+  /* "border" */
+  background-color: black;
+  grid-gap: 1px;
+}
+
+.listReset {
+  list-style: none;
+  margin-left: 0px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  padding-left: 0px;
+}
+
+.display {
+  flex: 1 1 100vh;
+}
+
+.pads {
+  composes: gridContainer listReset;
+  flex: 0 0 36%;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  background-color: var(--orange);
+  grid-gap: 1px;
+  border: 1px var(--orange) solid;
+}
+
+.pad {
+  display: flex;
+  flex-flow: column;
+  text-align: center;
+  justify-content: center;
+}
+
+.padLabel {
+  font-size: 24px;
+}
