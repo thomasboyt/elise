@@ -1,9 +1,9 @@
-import { getCurrentStep } from '../state/accessors';
+import { getHeldStep } from '../state/accessors';
 import { useEliseContext } from '../state/useEliseContext';
 
 export function EliseUINoteDisplay() {
   const { state } = useEliseContext();
-  const currentNote = getCurrentStep(state);
-  const notes = (currentNote ?? state.ui.nextStepSettings).notes;
+  const currentNote = getHeldStep(state);
+  const notes = (currentNote ?? state.ui.nextStepSettings).notes.join(', ');
   return <div>Notes: {notes}</div>;
 }

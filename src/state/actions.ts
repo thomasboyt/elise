@@ -1,7 +1,11 @@
 import { Updater } from 'use-immer';
 import { EliseState } from './state';
-import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
-import { getTrackOrThrow } from './accessors';
+import {
+  getHeldStepIndex,
+  getStepIndexFromPad,
+  getStepOrThrow,
+  getTrackOrThrow,
+} from './accessors';
 import {
   changePadMode,
   changeScene,
@@ -105,4 +109,82 @@ export function handleEnterPadTrackMode(
     handlePadOff(currentState, update, currentState.ui.heldPad);
   }
   changePadMode(update, 'track');
+}
+
+export function handleKeyboardNoteOn(
+  currentState: EliseState,
+  update: Updater<EliseState>,
+  _channel: number,
+  note: number,
+) {
+  if (currentState.ui.heldNotes.includes(note)) {
+    return;
+  }
+
+  let stepIndex = null;
+  if (currentState.ui.padMode === 'clip') {
+    stepIndex = getHeldStepIndex(currentState);
+  }
+
+  if (currentState.ui.heldNotes.length === 0) {
+    // starting a new "chord"
+    update((draft) => {
+      const { currentTrack, currentScene } = currentState.ui;
+      if (stepIndex !== null) {
+        const step = getStepOrThrow(
+          draft,
+          currentScene,
+          currentTrack,
+          stepIndex,
+        );
+        step.notes = [note];
+      } else {
+        draft.ui.nextStepSettings.notes = [note];
+      }
+    });
+  } else {
+    // add to existing chord
+    update((draft) => {
+      const { currentTrack, currentScene } = currentState.ui;
+      if (stepIndex !== null) {
+        const step = getStepOrThrow(
+          draft,
+          currentScene,
+          currentTrack,
+          stepIndex,
+        );
+        if (!step.notes.includes(note)) {
+          step.notes.push(note);
+        }
+      } else {
+        if (!draft.ui.nextStepSettings.notes.includes(note)) {
+          draft.ui.nextStepSettings.notes.push(note);
+        }
+      }
+    });
+  }
+
+  update((draft) => {
+    draft.ui.heldNotes.push(note);
+  });
+
+  // TODO: start note for live playback, somehow
+}
+
+export function handleKeyboardNoteOff(
+  _currentState: EliseState,
+  update: Updater<EliseState>,
+  _channel: number,
+  note: number,
+) {
+  update((draft) => {
+    const index = draft.ui.heldNotes.findIndex((held) => held === note);
+
+    if (index === -1) {
+      return;
+    }
+
+    draft.ui.heldNotes.splice(index, 1);
+  });
+  // TODO: stop note for live playback, somehow
 }

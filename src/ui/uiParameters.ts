@@ -1,6 +1,9 @@
 import { Updater } from 'use-immer';
-import { getHeldStepIndex } from './getHeldStepIndex';
-import { getCurrentStep, getTrackOrThrow } from '../state/accessors';
+import {
+  getHeldStep,
+  getHeldStepIndex,
+  getTrackOrThrow,
+} from '../state/accessors';
 import { EliseState, MidiParameter, NoteParameter } from '../state/state';
 import { parameterPlockKey } from '../state/stateUtils';
 
@@ -27,7 +30,7 @@ const velocity: UIParameterConfig = {
   key: 'velocity',
   label: () => 'Velocity',
   get(state) {
-    const currentNote = getCurrentStep(state);
+    const currentNote = getHeldStep(state);
     return (currentNote ?? state.ui.nextStepSettings).velocity;
   },
   set(update, value) {
@@ -41,7 +44,7 @@ const gate: UIParameterConfig = {
   key: 'gate',
   label: () => 'Gate length',
   get(state) {
-    const currentNote = getCurrentStep(state);
+    const currentNote = getHeldStep(state);
     return (currentNote ?? state.ui.nextStepSettings).gate;
   },
   set(update, value) {
@@ -55,7 +58,7 @@ const offset: UIParameterConfig = {
   key: 'offset',
   label: () => 'Offset',
   get(state) {
-    const currentNote = getCurrentStep(state);
+    const currentNote = getHeldStep(state);
     return (currentNote ?? state.ui.nextStepSettings).offset;
   },
   set(update, value) {
@@ -102,7 +105,7 @@ export function getUIMidiParameter(index: number): UIParameterConfig {
         state.ui.currentScene,
         state.ui.currentTrack,
       );
-      const currentStep = getCurrentStep(state);
+      const currentStep = getHeldStep(state);
       const trackParameterValues = track.parameterValues;
 
       const parameterLock =
@@ -119,7 +122,7 @@ export function getUIMidiParameter(index: number): UIParameterConfig {
           draft.ui.currentScene,
           draft.ui.currentTrack,
         );
-        const currentStep = getCurrentStep(draft);
+        const currentStep = getHeldStep(draft);
         if (currentStep) {
           currentStep.parameterLocks[parameterPlockKey(index)] = {
             index,

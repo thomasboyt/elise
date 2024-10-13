@@ -357,7 +357,9 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     }
   };
 
-  private handleMidiNoteOn(e: WebMidi.NoteMessageEvent) {
+  private handleMidiNoteOn = (e: WebMidi.NoteMessageEvent) => {
+    this.logIncoming('Keyboard note on', e.note.number, e.note.rawAttack);
+
     if (e.note.rawAttack === 0) {
       // I'm pretty sure WebMidi handles this for us, but just in case
       this.handleMidiNoteOff(e);
@@ -369,11 +371,12 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
       e.note.number,
       e.note.rawAttack,
     );
-  }
+  };
 
-  private handleMidiNoteOff(e: WebMidi.NoteMessageEvent) {
+  private handleMidiNoteOff = (e: WebMidi.NoteMessageEvent) => {
+    this.logIncoming('Keyboard note off', e.note.number);
     this.emit('keyboardNoteOff', e.message.channel, e.note.number);
-  }
+  };
 
   private log(...args: unknown[]) {
     console.log('*** Launchkey Controller:', ...args);

@@ -119,6 +119,8 @@ export interface UIState {
   heldPadStartTime: number | null; // used to distinguish between "toggle" and "hold"
   protectHeldPadDeletion: boolean; // set true after a note is toggled on so we don't remove it when it's let go
 
+  heldNotes: number[];
+
   // UI navigation
   currentTrack: number;
   currentScene: number;
@@ -177,6 +179,7 @@ export function createDefaultUIState(): UIState {
     heldPad: null,
     heldPadStartTime: null,
     protectHeldPadDeletion: false,
+    heldNotes: [],
 
     currentScene: 0,
     currentTrack: 0,

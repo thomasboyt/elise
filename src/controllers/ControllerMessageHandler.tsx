@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Updater } from 'use-immer';
 import { useEliseContext } from '../state/useEliseContext';
 import { useMidiController } from './useMidiController';
 import { EliseState } from '../state/state';
@@ -7,10 +8,11 @@ import {
   handleEnterPadClipMode,
   handleEnterPadSceneMode,
   handleEnterPadTrackMode,
+  handleKeyboardNoteOn,
+  handleKeyboardNoteOff,
   handlePadOff,
   handlePadOn,
 } from '../state/actions';
-import { Updater } from 'use-immer';
 import {
   getUIMidiParameter,
   noteParametersByEncoderIndex,
@@ -45,15 +47,6 @@ export function ControllerMessageHandler() {
     }
 
     function handleAbsoluteEncoderUpdated(encoderIndex: number, value: number) {
-      // const { currentTrack, currentScene } = stateRef.current.ui;
-      // let currentStep = null;
-      // if (stateRef.current.ui.heldPad !== null) {
-      //   currentStep = getStepIndexFromPad(
-      //     stateRef.current,
-      //     stateRef.current.ui.heldPad,
-      //   );
-      // }
-
       if (stateRef.current.ui.encoderBank === 'note') {
         const noteParameter = noteParametersByEncoderIndex[encoderIndex];
         if (!noteParameter) {
@@ -82,6 +75,8 @@ export function ControllerMessageHandler() {
     const boundEnterPadClipMode = bind(handleEnterPadClipMode);
     const boundEnterPadSceneMode = bind(handleEnterPadSceneMode);
     const boundEnterPadTrackMode = bind(handleEnterPadTrackMode);
+    const boundKeyboardNoteOn = bind(handleKeyboardNoteOn);
+    const boundKeyboardNoteOff = bind(handleKeyboardNoteOff);
 
     controller.on('padOn', boundPadOn);
     controller.on('padOff', boundPadOff);
@@ -97,6 +92,8 @@ export function ControllerMessageHandler() {
     // controller.on('relativeEncoderUpdated', handleRelativeEncoderUpdated);
     // controller.on('nextEncoderBank', handleNextEncoderBank);
     // controller.on('prevEncoderBank', handlePrevEncoderBank);
+    controller.on('keyboardNoteOn', boundKeyboardNoteOn);
+    controller.on('keyboardNoteOff', boundKeyboardNoteOff);
 
     return () => {
       controller.off('padOn', boundPadOn);
@@ -113,6 +110,8 @@ export function ControllerMessageHandler() {
       // controller.off('relativeEncoderUpdated', handleRelativeEncoderUpdated);
       // controller.off('nextEncoderBank', handleNextEncoderBank);
       // controller.off('prevEncoderBank', handlePrevEncoderBank);
+      controller.off('keyboardNoteOn', boundKeyboardNoteOn);
+      controller.off('keyboardNoteOff', boundKeyboardNoteOff);
     };
   }, [update, controller]);
 

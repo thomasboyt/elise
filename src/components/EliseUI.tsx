@@ -1,14 +1,14 @@
 import { useHardwareConnected } from '../controllers/useMidiController';
 import { handlePadOff, handlePadOn } from '../state/actions';
 import { useEliseContext } from '../state/useEliseContext';
-import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
 import { getPadColors } from '../ui/getPadColors';
 import { ElisePad } from './ElisePad';
 import { EliseUISection } from './EliseUISection';
 import { EliseUIParameterList } from './EliseUIParameterList';
 import { EliseUINoteDisplay } from './EliseUINoteDisplay';
-import css from './EliseUI.module.css';
 import { getUIMidiParameter, noteParameters } from '../ui/uiParameters';
+import { getStepIndexFromPad } from '../state/accessors';
+import css from './EliseUI.module.css';
 
 export function EliseUI() {
   const { state, update } = useEliseContext();
