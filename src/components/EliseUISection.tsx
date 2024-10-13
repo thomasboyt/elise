@@ -11,12 +11,17 @@ interface Props {
 }
 
 export function EliseUISection(props: Props) {
-  const { state } = useEliseContext();
   const { label, encoderBank, children } = props;
+  const { state, update } = useEliseContext();
 
   return (
     <section className={css.section}>
       <div
+        onClick={() =>
+          update((draft) => {
+            draft.ui.encoderBank = encoderBank;
+          })
+        }
         className={classNames(css.sectionHeaderContainer, {
           [css.sectionHeaderContainerActive]:
             encoderBank === state.ui.encoderBank,

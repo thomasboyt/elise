@@ -1,21 +1,21 @@
 import { getTrackOrThrow } from '../state/accessors';
 import { EliseState } from '../state/state';
-import * as parameters from './uiParameters';
+import { getUIMidiParameter, noteParameters } from './uiParameters';
 import { Encoder } from './uiModels';
 
 export function getNoteEncoders(state: EliseState): (Encoder | null)[] {
   return [
     {
-      name: parameters.velocity.label(state),
-      value: parameters.velocity.get(state),
+      name: noteParameters.velocity.label(state),
+      value: noteParameters.velocity.get(state),
     },
     {
-      name: parameters.gate.label(state),
-      value: parameters.gate.get(state),
+      name: noteParameters.gate.label(state),
+      value: noteParameters.gate.get(state),
     },
     {
-      name: parameters.offset.label(state),
-      value: parameters.offset.get(state),
+      name: noteParameters.offset.label(state),
+      value: noteParameters.offset.get(state),
     },
     null,
     null,
@@ -30,7 +30,7 @@ export function getParameterEncoders(state: EliseState): Encoder[] {
   const track = getTrackOrThrow(state, currentScene, currentTrack);
 
   return track.parameterConfiguration.map((_, idx): Encoder => {
-    const param = parameters.getUIMidiParameter(idx);
+    const param = getUIMidiParameter(idx);
     return {
       name: param.label(state),
       value: param.get(state),

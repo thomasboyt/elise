@@ -23,7 +23,7 @@ function setNoteValue(draft: EliseState, key: NoteParameter, value: number) {
   }
 }
 
-export const velocity: UIParameterConfig = {
+const velocity: UIParameterConfig = {
   key: 'velocity',
   label: () => 'Velocity',
   get(state) {
@@ -37,7 +37,7 @@ export const velocity: UIParameterConfig = {
   },
 };
 
-export const gate: UIParameterConfig = {
+const gate: UIParameterConfig = {
   key: 'gate',
   label: () => 'Gate length',
   get(state) {
@@ -51,7 +51,7 @@ export const gate: UIParameterConfig = {
   },
 };
 
-export const offset: UIParameterConfig = {
+const offset: UIParameterConfig = {
   key: 'offset',
   label: () => 'Offset',
   get(state) {
@@ -64,6 +64,9 @@ export const offset: UIParameterConfig = {
     });
   },
 };
+
+export const noteParameters = { velocity, gate, offset };
+export const noteParametersByEncoderIndex = [velocity, gate, offset];
 
 function getParameterLabel(parameter: MidiParameter): string {
   if (parameter.type === 'midiCc') {

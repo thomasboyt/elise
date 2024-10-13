@@ -1,13 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useEliseContext } from '../state/useEliseContext';
 import { useMidiController } from './useMidiController';
-import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
-import { EliseState, NoteParameter } from '../state/state';
+import { EliseState } from '../state/state';
 import { getControllerState } from './ControllerState';
-import {
-  setNextStepNoteParameter,
-  setStepNoteParameter,
-} from '../state/updateState';
 import {
   handleEnterPadClipMode,
   handleEnterPadSceneMode,
@@ -16,6 +11,10 @@ import {
   handlePadOn,
 } from '../state/actions';
 import { Updater } from 'use-immer';
+import {
+  getUIMidiParameter,
+  noteParametersByEncoderIndex,
+} from '../ui/uiParameters';
 
 // This is basically stopgap non-architecture.
 //
@@ -46,40 +45,24 @@ export function ControllerMessageHandler() {
     }
 
     function handleAbsoluteEncoderUpdated(encoderIndex: number, value: number) {
-      const { currentTrack, currentScene } = stateRef.current.ui;
-      let currentStep = null;
-      if (stateRef.current.ui.heldPad !== null) {
-        currentStep = getStepIndexFromPad(
-          stateRef.current,
-          stateRef.current.ui.heldPad,
-        );
-      }
+      // const { currentTrack, currentScene } = stateRef.current.ui;
+      // let currentStep = null;
+      // if (stateRef.current.ui.heldPad !== null) {
+      //   currentStep = getStepIndexFromPad(
+      //     stateRef.current,
+      //     stateRef.current.ui.heldPad,
+      //   );
+      // }
 
       if (stateRef.current.ui.encoderBank === 'note') {
-        // TODO: better mapping here lmao
-        const mapping: Record<number, NoteParameter> = {
-          0: 'velocity',
-          1: 'gate',
-          2: 'offset',
-        };
-        const parameter = mapping[encoderIndex];
-        if (!parameter) {
+        const noteParameter = noteParametersByEncoderIndex[encoderIndex];
+        if (!noteParameter) {
           return;
         }
-        if (currentStep === null) {
-          setNextStepNoteParameter(update, parameter, value);
-        } else {
-          setStepNoteParameter(
-            update,
-            currentScene,
-            currentTrack,
-            currentStep,
-            parameter,
-            value,
-          );
-        }
+        noteParameter.set(update, value);
       } else if (stateRef.current.ui.encoderBank === 'parameters') {
-        // TODO
+        const midiParameter = getUIMidiParameter(encoderIndex);
+        midiParameter.set(update, value);
       }
     }
 

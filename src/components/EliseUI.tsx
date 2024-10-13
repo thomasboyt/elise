@@ -5,10 +5,10 @@ import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
 import { getPadColors } from '../ui/getPadColors';
 import { ElisePad } from './ElisePad';
 import { EliseUISection } from './EliseUISection';
-import * as parameters from '../ui/uiParameters';
 import { EliseUIParameterList } from './EliseUIParameterList';
 import { EliseUINoteDisplay } from './EliseUINoteDisplay';
 import css from './EliseUI.module.css';
+import { getUIMidiParameter, noteParameters } from '../ui/uiParameters';
 
 export function EliseUI() {
   const { state, update } = useEliseContext();
@@ -33,16 +33,16 @@ export function EliseUI() {
           <EliseUINoteDisplay />
           <EliseUIParameterList
             parameters={[
-              parameters.velocity,
-              parameters.gate,
-              parameters.offset,
+              noteParameters.velocity,
+              noteParameters.gate,
+              noteParameters.offset,
             ]}
           />
         </EliseUISection>
         <EliseUISection encoderBank="parameters" label="Params">
           <EliseUIParameterList
             parameters={[...new Array(8)].map((_, idx) =>
-              parameters.getUIMidiParameter(idx),
+              getUIMidiParameter(idx),
             )}
           />
         </EliseUISection>
