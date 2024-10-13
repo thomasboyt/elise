@@ -1,24 +1,76 @@
 import { useHardwareConnected } from '../controllers/useMidiController';
-import { getStepOrThrow } from '../state/accessors';
+import { getStepOrThrow, getTrackOrThrow } from '../state/accessors';
+import { EliseState, MidiParameter, MidiStep } from '../state/state';
+import { parameterPlockKey } from '../state/stateUtils';
 import { useEliseContext } from '../state/useEliseContext';
 import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
 
-export function EliseUI() {
-  const { state } = useEliseContext();
-  const hardwareConnected = useHardwareConnected();
+function getCurrentStep(state: EliseState): MidiStep | null {
   const currentStepIndex =
     state.ui.heldPad === null
       ? null
       : getStepIndexFromPad(state, state.ui.heldPad);
-  const currentStep =
-    currentStepIndex === null
+  return currentStepIndex === null
+    ? null
+    : getStepOrThrow(
+        state,
+        state.ui.currentScene,
+        state.ui.currentTrack,
+        currentStepIndex,
+      );
+}
+
+interface ParameterItem {
+  parameter: MidiParameter;
+  value: number | null;
+  isParameterLock: boolean;
+}
+
+function getParameterItems(state: EliseState): ParameterItem[] {
+  const track = getTrackOrThrow(
+    state,
+    state.ui.currentScene,
+    state.ui.currentTrack,
+  );
+  const currentStep = getCurrentStep(state);
+  const parameterConfiguration = track.parameterConfiguration;
+  const trackParameterValues = track.parameterValues;
+
+  return parameterConfiguration.map((configuration, idx) => {
+    const parameterLock = currentStep?.parameterLocks[parameterPlockKey(idx)];
+    const value = parameterLock
+      ? parameterLock.value
+      : trackParameterValues[idx];
+    return {
+      isParameterLock: !!parameterLock,
+      parameter: configuration,
+      value,
+    };
+  });
+}
+
+function getParameterLabel(parameter: MidiParameter): string {
+  if (parameter.type === 'midiCc') {
+    return parameter.label ?? `CC ${parameter.controllerNumber}`;
+  }
+  if (parameter.type === 'midiPc') {
+    return 'PC';
+  }
+  if (parameter.type === 'midiPitchBend') {
+    return 'Pitch Bend';
+  }
+  throw new Error(`Unrecognized parameter type ${parameter}`);
+}
+
+export function EliseUI() {
+  const { state } = useEliseContext();
+  const hardwareConnected = useHardwareConnected();
+
+  const currentStepIndex =
+    state.ui.heldPad === null
       ? null
-      : getStepOrThrow(
-          state,
-          state.ui.currentScene,
-          state.ui.currentTrack,
-          currentStepIndex,
-        );
+      : getStepIndexFromPad(state, state.ui.heldPad);
+  const currentStep = getCurrentStep(state);
 
   const noteValuesSource = currentStep
     ? currentStep
@@ -29,6 +81,8 @@ export function EliseUI() {
     offset: noteValuesSource.offset,
     gate: noteValuesSource.gate,
   };
+
+  const parameterItems = getParameterItems(state);
 
   return (
     <div style={{ height: '300px' }}>
@@ -49,6 +103,13 @@ export function EliseUI() {
         Notes: {noteValues.notes} / Velocity: {noteValues.velocity} / Length:{' '}
         {noteValues.gate} / Offset: {noteValues.offset}
       </p>
+      <ul>
+        {parameterItems.map((item, idx) => (
+          <li key={idx}>
+            {getParameterLabel(item.parameter)}: {item.value ?? '---'}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

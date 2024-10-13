@@ -1,20 +1,6 @@
 import { PadMode } from '../ui/uiModels';
 import { extendArrayToLength } from '../util/extendArrayToLength';
 
-interface MidiCcParameter {
-  type: 'midiCc';
-  controllerNumber: number;
-  label: string;
-  displayValueType: 'number' | 'percent';
-}
-interface MidiPcParameter {
-  type: 'midiPc';
-}
-interface MidiPitchBendParameter {
-  type: 'midiPitchBend';
-}
-type MidiParameter = MidiCcParameter | MidiPcParameter | MidiPitchBendParameter;
-
 // Ideally these would be stable between plugging in and unplugging things.
 // Not sure what options exist for that!
 interface MidiHardwareDestination {
@@ -28,16 +14,27 @@ interface MidiAllHardwareDestination {
 
 type MidiDestination = MidiAllHardwareDestination | MidiHardwareDestination;
 
-/**
- * This scene-level configuration will not be plockable. We might want to do that in
- * the future, but this will make it easier to build a separate management UI for CCs
- * that can support MIDI learn and stuff without it getting too weird.
- */
-interface MidiParameterConfiguration {
+interface BaseMidiParameter {
+  type: string;
   channel: number | null;
   destination: MidiDestination | null;
-  parameters: MidiParameter[];
 }
+interface MidiCcParameter extends BaseMidiParameter {
+  type: 'midiCc';
+  controllerNumber: number;
+  label: string;
+  displayValueType: 'number' | 'percent';
+}
+interface MidiPcParameter extends BaseMidiParameter {
+  type: 'midiPc';
+}
+interface MidiPitchBendParameter extends BaseMidiParameter {
+  type: 'midiPitchBend';
+}
+export type MidiParameter =
+  | MidiCcParameter
+  | MidiPcParameter
+  | MidiPitchBendParameter;
 
 // ------------------
 // Sequencer storage
@@ -70,7 +67,13 @@ export interface MidiClipTrack {
   lfo: null; // TODO (obviously)
   // these are settings that may not be exposed in pages, but only changed
   // via touch screen
-  parameterConfiguration: MidiParameterConfiguration;
+  /**
+   * This scene-level configuration will not be plockable. We might want to do
+   * that in the future, but this will make it easier to build a separate
+   * management UI for CCs that can support MIDI learn and stuff without it
+   * getting too weird.
+   */
+  parameterConfiguration: MidiParameter[];
   swing: number;
 }
 
@@ -135,18 +138,16 @@ export interface EliseState {
 export function createEmptyTrack(): MidiClipTrack {
   return {
     lfo: null,
-    parameterConfiguration: {
-      channel: null,
-      destination: null,
-      parameters: [
-        {
-          controllerNumber: 30,
-          displayValueType: 'number',
-          label: 'MIDI CC 30',
-          type: 'midiCc',
-        },
-      ],
-    },
+    parameterConfiguration: [
+      {
+        channel: 1,
+        destination: null,
+        controllerNumber: 30,
+        displayValueType: 'number',
+        label: 'MIDI CC 30',
+        type: 'midiCc',
+      },
+    ],
     parameterValues: [null],
     steps: new Array(16).fill(null),
     swing: 0,
