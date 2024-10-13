@@ -61,12 +61,6 @@ export interface IControllerSurface
   extends TypedEventEmitter<ControllerSurfaceEvents> {
   initController(): void;
   teardownController(): void;
-  changeEncoderBank(encoderBank: EncoderBank): void;
-  changePadMode(padMode: PadMode): void;
-  updatePadColor(padIndex: number, color: PadColor): void;
-  updateEncoderName(encoderIndex: number, name: string): void;
-  updateEncoderValue(encoderIndex: number, value: number): void;
-
   resetState(snapshot: ControllerState): void;
   handleStateUpdate(snapshot: ControllerState): void;
 }

@@ -1,5 +1,3 @@
-import { EncoderBank } from '../state/state';
-import { PadColor, PadMode } from '../ui/uiModels';
 import { TypedEventEmitter } from '../util/TypedEventEmitter';
 import { ControllerState } from './ControllerState';
 import {
@@ -52,26 +50,6 @@ export class ControllerSurfaceGroup
 
   teardownController = () => {
     this.eachController((c) => c.teardownController());
-  };
-
-  changeEncoderBank = (encoderBank: EncoderBank) => {
-    this.eachController((c) => c.changeEncoderBank(encoderBank));
-  };
-
-  changePadMode = (padMode: PadMode) => {
-    this.eachController((c) => c.changePadMode(padMode));
-  };
-
-  updateEncoderName = (encoderIndex: number, name: string) => {
-    this.eachController((c) => c.updateEncoderName(encoderIndex, name));
-  };
-
-  updateEncoderValue = (encoderIndex: number, value: number) => {
-    this.eachController((c) => c.updateEncoderValue(encoderIndex, value));
-  };
-
-  updatePadColor = (padIndex: number, color: PadColor) => {
-    this.eachController((c) => c.updatePadColor(padIndex, color));
   };
 
   resetState = (snapshot: ControllerState) => {
