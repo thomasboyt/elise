@@ -1,36 +1,22 @@
 import { getTrackOrThrow } from '../state/accessors';
 import { EliseState } from '../state/state';
-import { parameterPlockKey } from '../state/stateUtils';
-import { getHeldStepIndex } from './getHeldStepIndex';
-import {
-  Encoder,
-  gateEncoder,
-  offsetEncoder,
-  velocityEncoder,
-} from './uiModels';
+import * as parameters from './uiParameters';
+import { Encoder } from './uiModels';
 
-export function getNoteEncoders(state: EliseState) {
-  const { currentScene, currentTrack, nextStepSettings, padMode } = state.ui;
-  const track = getTrackOrThrow(state, currentScene, currentTrack);
-
-  const heldStep = padMode === 'clip' ? getHeldStepIndex(state) : null;
-  const currentNote = heldStep !== null ? track.steps[heldStep] : null;
-
-  let velocity, gate, offset;
-  if (currentNote) {
-    velocity = currentNote.velocity;
-    gate = currentNote.gate;
-    offset = currentNote.offset;
-  } else {
-    velocity = nextStepSettings.velocity;
-    gate = nextStepSettings.gate;
-    offset = nextStepSettings.offset;
-  }
-
+export function getNoteEncoders(state: EliseState): (Encoder | null)[] {
   return [
-    velocityEncoder(velocity),
-    gateEncoder(gate),
-    offsetEncoder(offset),
+    {
+      name: parameters.velocity.label(state),
+      value: parameters.velocity.get(state),
+    },
+    {
+      name: parameters.gate.label(state),
+      value: parameters.gate.get(state),
+    },
+    {
+      name: parameters.offset.label(state),
+      value: parameters.offset.get(state),
+    },
     null,
     null,
     null,
@@ -39,38 +25,15 @@ export function getNoteEncoders(state: EliseState) {
   ];
 }
 
-export function getParameterEncoders(state: EliseState) {
-  const { currentScene, currentTrack, padMode } = state.ui;
+export function getParameterEncoders(state: EliseState): Encoder[] {
+  const { currentScene, currentTrack } = state.ui;
   const track = getTrackOrThrow(state, currentScene, currentTrack);
 
-  const heldStep = padMode === 'clip' ? getHeldStepIndex(state) : null;
-  const currentNote = heldStep !== null ? track.steps[heldStep] : null;
-
-  const parameters = track.parameterConfiguration;
-  const trackParameters = track.parameterValues;
-  const stepParameters = currentNote?.parameterLocks ?? null;
-  return parameters.map((parameterConfiguration, idx): Encoder => {
-    const parameterValue =
-      stepParameters?.[parameterPlockKey(idx)]?.value ??
-      trackParameters[idx] ??
-      null;
-    if (parameterConfiguration.type === 'midiPc') {
-      return {
-        name: 'Program Change',
-        value: parameterValue,
-        displayType: 'number',
-      };
-    } else if (parameterConfiguration.type === 'midiPitchBend') {
-      return {
-        name: 'Pitch Bend',
-        value: parameterValue,
-        displayType: 'number',
-      };
-    }
+  return track.parameterConfiguration.map((_, idx): Encoder => {
+    const param = parameters.getUIMidiParameter(idx);
     return {
-      name: parameterConfiguration.label,
-      value: parameterValue,
-      displayType: parameterConfiguration.displayValueType,
+      name: param.label(state),
+      value: param.get(state),
     };
   });
 }

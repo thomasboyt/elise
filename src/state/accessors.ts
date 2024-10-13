@@ -1,3 +1,4 @@
+import { getStepIndexFromPad } from '../ui/getHeldStepIndex';
 import { EliseState, MidiClipTrack, MidiStep, Scene } from './state';
 
 export function getScene(state: EliseState, index: number): Scene | null {
@@ -57,4 +58,19 @@ export function getStepOrThrow(
     );
   }
   return step;
+}
+
+export function getCurrentStep(state: EliseState): MidiStep | null {
+  const currentStepIndex =
+    state.ui.heldPad === null
+      ? null
+      : getStepIndexFromPad(state, state.ui.heldPad);
+  return currentStepIndex === null
+    ? null
+    : getStepOrThrow(
+        state,
+        state.ui.currentScene,
+        state.ui.currentTrack,
+        currentStepIndex,
+      );
 }
