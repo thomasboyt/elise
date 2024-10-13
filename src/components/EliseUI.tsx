@@ -70,7 +70,7 @@ export function EliseUI() {
             className={classNames({ [css.activeButton]: padMode === 'clip' })}
             onClick={() => handleEnterPadClipMode(state, update)}
           >
-            Sequence
+            Step
           </button>
           <button
             className={classNames({ [css.activeButton]: padMode === 'track' })}
