@@ -16,6 +16,7 @@ import {
 import { ChannelSelect } from './ChannelSelect';
 import { ControllerNumberSelect } from './ControllerNumberSelect';
 import { ParamTypeSelect } from './ParamTypeSelect';
+import css from './MIDIConfiguration.module.css';
 
 export function MIDIConfiguration() {
   const { state, update } = useEliseContext();
@@ -27,21 +28,32 @@ export function MIDIConfiguration() {
   const parameters = track.parameterOrder;
 
   return (
-    <>
-      <h3>Note output</h3>
-      <ChannelSelect
-        value={track.midiNoteChannel}
-        onChange={(channel) =>
-          changeMidiNoteChannelForTrack(
-            update,
-            state.ui.currentScene,
-            state.ui.currentTrack,
-            channel,
-          )
-        }
-      />
+    <div className={css.midiConfiguration}>
+      <div className={css.headerGroup}>
+        <h3>Note output</h3>
+        <div className={css.headerGroupControls}>
+          <ChannelSelect
+            value={track.midiNoteChannel}
+            onChange={(channel) =>
+              changeMidiNoteChannelForTrack(
+                update,
+                state.ui.currentScene,
+                state.ui.currentTrack,
+                channel,
+              )
+            }
+          />
+        </div>
+      </div>
 
-      <h3>Parameters</h3>
+      <div className={css.headerGroup}>
+        <h3>Parameters</h3>
+
+        <div className={css.headerGroupControls}>
+          <button disabled>Save template</button>
+          <button>Load template</button>
+        </div>
+      </div>
 
       <table>
         <thead>
@@ -79,7 +91,7 @@ export function MIDIConfiguration() {
                   <input
                     type="text"
                     aria-label="Label"
-                    value={hasCustomLabel ? label : undefined}
+                    value={hasCustomLabel ? label : ''}
                     placeholder={getDefaultMidiParameterLabel(param)}
                     onChange={(e) => {
                       const value =
@@ -145,26 +157,28 @@ export function MIDIConfiguration() {
         </tbody>
       </table>
 
-      <button
-        onClick={() =>
-          addMidiParameterConfigurationForTrack(
-            update,
-            state.ui.currentScene,
-            state.ui.currentTrack,
-            crypto.randomUUID(),
-            {
-              channel: null,
-              type: 'midiCc',
-              controllerNumber: 1,
-              destination: null,
-              displayValueType: 'number',
-              label: null,
-            },
-          )
-        }
-      >
-        + Add
-      </button>
-    </>
+      {parameters.length < 8 && (
+        <button
+          onClick={() =>
+            addMidiParameterConfigurationForTrack(
+              update,
+              state.ui.currentScene,
+              state.ui.currentTrack,
+              crypto.randomUUID(),
+              {
+                channel: null,
+                type: 'midiCc',
+                controllerNumber: 1,
+                destination: null,
+                displayValueType: 'number',
+                label: null,
+              },
+            )
+          }
+        >
+          + Add
+        </button>
+      )}
+    </div>
   );
 }

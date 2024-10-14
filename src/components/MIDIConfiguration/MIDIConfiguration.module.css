@@ -1,0 +1,24 @@
+.midiConfiguration {
+  margin: 0 10px;
+}
+
+.headerGroup {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.headerGroup h3 {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.headerGroup .headerGroupControls {
+  margin-left: 20px;
+  flex: 0 0 auto;
+}
+
+.headerGroupControls button {
+  margin-left: 10px;
+}
+.headerGroupControls button:first {
+  margin-left: 0;
+}
