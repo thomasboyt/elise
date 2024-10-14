@@ -1,4 +1,4 @@
-.gridView {
+.baseGrid {
   width: 100%;
   height: 100%;
   display: grid;
@@ -6,7 +6,17 @@
   grid-auto-rows: 1fr;
 }
 
-.gridTrackLabel,
+.baseGridScroll {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  display: grid;
+  grid-template-columns: 10% 1fr;
+  grid-auto-rows: 22px; /* TODO: I'd like to express this as 1/16 of the container  height, but not sure how that works w overflow scroll*/
+}
+
+.rowLabel,
 .gridTrack {
   border: 1px var(--orange) solid;
   overflow: hidden;
@@ -16,8 +26,6 @@
   display: grid;
   width: 100%;
   grid-auto-flow: column;
-  /* grid-template-rows: 1fr;
-  grid-auto-columns: 1fr; */
 }
 
 .step {

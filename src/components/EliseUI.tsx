@@ -16,6 +16,7 @@ import { EliseUIEncoderBanks } from './EliseUIEncoderBanks';
 import { GridView } from './GridView/GridView';
 import { EliseUIPads } from './EliseUIPads';
 import { MIDIConfiguration } from './MIDIConfiguration/MIDIConfiguration';
+import { PianoRoll } from './PianoRoll/PianoRoll';
 import css from './EliseUI.module.css';
 
 export function EliseUI() {
@@ -62,7 +63,16 @@ export function EliseUI() {
           >
             MIDI Configuration
           </button>
-          <button disabled>Piano Roll</button>
+          <button
+            className={classNames({
+              [css.activeButton]: state.ui.displayScreen === 'pianoRoll',
+            })}
+            onClick={() =>
+              handleChangeDisplayScreen(state, update, 'pianoRoll')
+            }
+          >
+            Piano Roll
+          </button>
           <button
             className={classNames({
               [css.activeButton]: state.ui.displayScreen === 'gridView',
@@ -78,6 +88,7 @@ export function EliseUI() {
           {state.ui.displayScreen === 'midiConfiguration' && (
             <MIDIConfiguration />
           )}
+          {state.ui.displayScreen === 'pianoRoll' && <PianoRoll />}
           {state.ui.displayScreen === 'gridView' && <GridView />}
         </div>
 
