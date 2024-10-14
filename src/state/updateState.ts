@@ -3,6 +3,7 @@ import {
   createEmptyScene,
   createEmptyTrack,
   EliseState,
+  MidiCcBehavior,
   MidiParameter,
   MidiParameterType,
   MidiStep,
@@ -298,6 +299,7 @@ export function setMidiParameterType(
       !track.parameterConfiguration[id].controllerNumber
     ) {
       track.parameterConfiguration[id].controllerNumber = 0;
+      track.parameterConfiguration[id].behavior = 'step';
     }
   });
 }
@@ -314,6 +316,22 @@ export function setMidiParameterControllerNumber(
     const param = track.parameterConfiguration[id];
     if (param.type === 'midiCc') {
       param.controllerNumber = controllerNumber;
+    }
+  });
+}
+
+export function setMidiParameterCcBehavior(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+  behavior: MidiCcBehavior,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    const param = track.parameterConfiguration[id];
+    if (param.type === 'midiCc') {
+      param.behavior = behavior;
     }
   });
 }

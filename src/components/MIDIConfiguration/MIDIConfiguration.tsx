@@ -7,6 +7,7 @@ import {
   setMidiParameterType,
   setMidiParameterLabel,
   removeMidiParameterConfigurationForTrack,
+  setMidiParameterCcBehavior,
 } from '../../state/updateState';
 import { useEliseContext } from '../../state/useEliseContext';
 import {
@@ -17,6 +18,7 @@ import { ChannelSelect } from './ChannelSelect';
 import { ControllerNumberSelect } from './ControllerNumberSelect';
 import { ParamTypeSelect } from './ParamTypeSelect';
 import css from './MIDIConfiguration.module.css';
+import { BehaviorSelect } from './BehaviorSelect';
 
 export function MIDIConfiguration() {
   const { state, update } = useEliseContext();
@@ -63,6 +65,7 @@ export function MIDIConfiguration() {
             <th scope="col">Channel</th>
             <th scope="col">Type</th>
             <th scope="col">Controller</th>
+            <th scope="col">Behavior</th>
           </tr>
         </thead>
         <tbody>
@@ -151,6 +154,22 @@ export function MIDIConfiguration() {
                     />
                   )}
                 </td>
+                <td>
+                  {param.type === 'midiCc' && (
+                    <BehaviorSelect
+                      value={param.behavior}
+                      onChange={(behavior) =>
+                        setMidiParameterCcBehavior(
+                          update,
+                          state.ui.currentScene,
+                          state.ui.currentTrack,
+                          id,
+                          behavior,
+                        )
+                      }
+                    />
+                  )}
+                </td>
               </tr>
             );
           })}
@@ -172,6 +191,7 @@ export function MIDIConfiguration() {
                 destination: null,
                 displayValueType: 'number',
                 label: null,
+                behavior: 'step',
               },
             )
           }

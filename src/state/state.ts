@@ -15,6 +15,7 @@ interface MidiAllHardwareDestination {
 type MidiDestination = MidiAllHardwareDestination | MidiHardwareDestination;
 
 export type MidiParameterType = 'midiCc' | 'midiPc' | 'midiPitchBend';
+export type MidiCcBehavior = 'step' | 'slide';
 interface BaseMidiParameter {
   type: MidiParameterType;
   channel: number | null;
@@ -25,6 +26,7 @@ interface MidiCcParameter extends BaseMidiParameter {
   type: 'midiCc';
   controllerNumber: number;
   displayValueType: 'number' | 'percent';
+  behavior: MidiCcBehavior;
 }
 interface MidiPcParameter extends BaseMidiParameter {
   type: 'midiPc';

@@ -16,6 +16,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Kick Decay',
+              behavior: 'step',
             },
             '7b55f137-94ea-4c3a-b457-e30117447115': {
               channel: null,
@@ -24,6 +25,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Kick Tuning',
+              behavior: 'step',
             },
           },
           parameterOrder: [
@@ -201,6 +203,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Osc Wave',
+              behavior: 'slide',
             },
             '20df7350-5627-4f9d-a3e5-53bfba91c894': {
               channel: null,
@@ -209,6 +212,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Osc Timbre',
+              behavior: 'slide',
             },
             'bacf0f6a-91e1-4b65-b44f-7b26f7dccec4': {
               channel: null,
@@ -217,6 +221,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Osc Shape',
+              behavior: 'slide',
             },
             '9509a149-8182-42cc-9cce-518ccf19e910': {
               channel: null,
@@ -225,6 +230,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Filter Cutoff',
+              behavior: 'slide',
             },
             'cea6e553-fe24-49dd-b576-28482d56148c': {
               channel: null,
@@ -233,6 +239,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Filter Resonance',
+              behavior: 'slide',
             },
             'a4749892-101e-49b5-ab6e-7f82d8caf113': {
               channel: null,
@@ -241,6 +248,7 @@ export const demoProject: ProjectStorage = {
               destination: null,
               displayValueType: 'number',
               label: 'Env Decay',
+              behavior: 'slide',
             },
           },
           parameterOrder: [
