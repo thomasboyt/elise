@@ -6,6 +6,7 @@ import {
   setMidiParameterChannel,
   setMidiParameterType,
   setMidiParameterLabel,
+  removeMidiParameterConfigurationForTrack,
 } from '../../state/updateState';
 import { useEliseContext } from '../../state/useEliseContext';
 import {
@@ -45,7 +46,8 @@ export function MIDIConfiguration() {
       <table>
         <thead>
           <tr>
-            <th scope="col">Channel</th>
+            <th scope="col" />
+            <th scope="col">Label</th>
             <th scope="col">Channel</th>
             <th scope="col">Type</th>
             <th scope="col">Controller</th>
@@ -59,6 +61,20 @@ export function MIDIConfiguration() {
 
             return (
               <tr key={id}>
+                <td>
+                  <button
+                    onClick={() =>
+                      removeMidiParameterConfigurationForTrack(
+                        update,
+                        state.ui.currentScene,
+                        state.ui.currentTrack,
+                        id,
+                      )
+                    }
+                  >
+                    x
+                  </button>
+                </td>
                 <td>
                   <input
                     type="text"
@@ -146,7 +162,7 @@ export function MIDIConfiguration() {
           )
         }
       >
-        Add
+        + Add
       </button>
     </>
   );
