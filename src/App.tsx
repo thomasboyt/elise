@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { WebMidi } from 'webmidi';
 import { MIDIControllerProvider } from './controllers/MIDIControllerContext';
 import { EliseContextProvider } from './state/EliseContextProvider';
-import { StateTree } from './StateTree';
 import { ControllerMessageHandler } from './controllers/ControllerMessageHandler';
 import { VirtualController } from './components/VirtualController/VirtualController';
 import { EliseUI } from './components/EliseUI';
@@ -38,10 +37,7 @@ function App() {
         <MIDIControllerProvider>
           <EliseUI />
           <ControllerMessageHandler />
-          <div>
-            <VirtualController />
-            <StateTree />
-          </div>
+          <VirtualController />
         </MIDIControllerProvider>
       </EliseContextProvider>
     </>
