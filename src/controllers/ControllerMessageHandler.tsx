@@ -21,6 +21,7 @@ import {
   getUIMidiParameter,
   noteParametersByEncoderIndex,
 } from '../ui/uiParameters';
+import { getTrackOrThrow } from '../state/accessors';
 
 // This is basically stopgap non-architecture.
 //
@@ -58,8 +59,16 @@ export function ControllerMessageHandler() {
         }
         noteParameter.setRawValue(update, value);
       } else if (stateRef.current.ui.encoderBank === 'parameters') {
-        const midiParameter = getUIMidiParameter(encoderIndex);
-        midiParameter.setRawValue(update, value);
+        const track = getTrackOrThrow(
+          stateRef.current,
+          stateRef.current.ui.currentScene,
+          stateRef.current.ui.currentTrack,
+        );
+        const paramId = track.parameterOrder[encoderIndex];
+        if (paramId) {
+          const midiParameter = getUIMidiParameter(paramId);
+          midiParameter.setRawValue(update, value);
+        }
       }
     }
 

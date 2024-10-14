@@ -15,6 +15,7 @@ import {
 import { EliseUIEncoderBanks } from './EliseUIEncoderBanks';
 import { GridView } from './GridView/GridView';
 import { EliseUIPads } from './EliseUIPads';
+import { MIDIConfiguration } from './MIDIConfiguration/MIDIConfiguration';
 import css from './EliseUI.module.css';
 
 export function EliseUI() {
@@ -36,7 +37,7 @@ export function EliseUI() {
   return (
     <div className={css.eliseUi}>
       <div className={css.display}>
-        <div className={css.topBarr}>
+        <div className={css.topBar}>
           Launchkey{' '}
           {hardwareConnected ? <strong>connected</strong> : 'disconnected'}
           {` | Scene: ${state.ui.currentScene} / Track: ${state.ui.currentTrack} / Bar: ${state.ui.currentStepsPage} / Step: ${currentStepIndex ?? '---'}`}
@@ -50,7 +51,17 @@ export function EliseUI() {
           >
             Main
           </button>
-          <button disabled>MIDI Configuration</button>
+          <button
+            className={classNames({
+              [css.activeButton]:
+                state.ui.displayScreen === 'midiConfiguration',
+            })}
+            onClick={() =>
+              handleChangeDisplayScreen(state, update, 'midiConfiguration')
+            }
+          >
+            MIDI Configuration
+          </button>
           <button disabled>Piano Roll</button>
           <button
             className={classNames({
@@ -64,6 +75,9 @@ export function EliseUI() {
 
         <div className={css.mainSection}>
           {state.ui.displayScreen === 'main' && <EliseUIEncoderBanks />}
+          {state.ui.displayScreen === 'midiConfiguration' && (
+            <MIDIConfiguration />
+          )}
           {state.ui.displayScreen === 'gridView' && <GridView />}
         </div>
 

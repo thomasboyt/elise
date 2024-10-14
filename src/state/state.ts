@@ -14,8 +14,9 @@ interface MidiAllHardwareDestination {
 
 type MidiDestination = MidiAllHardwareDestination | MidiHardwareDestination;
 
+export type MidiParameterType = 'midiCc' | 'midiPc' | 'midiPitchBend';
 interface BaseMidiParameter {
-  type: string;
+  type: MidiParameterType;
   channel: number | null;
   destination: MidiDestination | null;
 }
@@ -44,7 +45,7 @@ interface ParameterLock {
   // Eventually I might want to add support for parameter-locking the LFO
   // settings, but for now I am lazy
   type: 'midiParameter';
-  index: number;
+  id: string;
   value: number;
 }
 
@@ -63,7 +64,6 @@ export interface MidiClipTrack {
   // TODO: should steps lose their p-lock values when deactivated?
   steps: (MidiStep | null)[];
   pageLength: number;
-  parameterValues: (number | null)[];
   lfo: null; // TODO (obviously)
   // these are settings that may not be exposed in pages, but only changed
   // via touch screen
@@ -73,8 +73,11 @@ export interface MidiClipTrack {
    * management UI for CCs that can support MIDI learn and stuff without it
    * getting too weird.
    */
-  parameterConfiguration: MidiParameter[];
+  parameterConfiguration: Record<string, MidiParameter>;
+  parameterOrder: string[];
+  parameterValues: Record<string, number | null>;
   swing: number;
+  midiNoteChannel: number | null;
 }
 
 export interface Scene {
@@ -144,10 +147,11 @@ export interface EliseState {
 }
 
 export function createEmptyTrack(): MidiClipTrack {
+  const demoMidiId = crypto.randomUUID();
   return {
     lfo: null,
-    parameterConfiguration: [
-      {
+    parameterConfiguration: {
+      [demoMidiId]: {
         channel: 1,
         destination: null,
         controllerNumber: 30,
@@ -155,11 +159,15 @@ export function createEmptyTrack(): MidiClipTrack {
         label: 'MIDI CC 30',
         type: 'midiCc',
       },
-    ],
-    parameterValues: [null],
+    },
+    parameterOrder: [demoMidiId],
+    parameterValues: {
+      [demoMidiId]: null,
+    },
     steps: new Array(16).fill(null),
     swing: 0,
     pageLength: 16,
+    midiNoteChannel: null,
   };
 }
 

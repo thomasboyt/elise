@@ -106,16 +106,16 @@ function getParameterLabel(parameter: MidiParameter): string {
   throw new Error(`Unrecognized parameter type ${parameter}`);
 }
 
-export function getUIMidiParameter(index: number): UIParameterConfig<number> {
+export function getUIMidiParameter(id: string): UIParameterConfig<number> {
   return {
-    key: `midiParameter-${index}`,
+    key: `midiParameter-${id}`,
     label(state) {
       const track = getTrackOrThrow(
         state,
         state.ui.currentScene,
         state.ui.currentTrack,
       );
-      const parameter = track.parameterConfiguration[index];
+      const parameter = track.parameterConfiguration[id];
       if (!parameter) {
         return '---';
       }
@@ -130,11 +130,10 @@ export function getUIMidiParameter(index: number): UIParameterConfig<number> {
       const currentStep = getHeldStep(state);
       const trackParameterValues = track.parameterValues;
 
-      const parameterLock =
-        currentStep?.parameterLocks[parameterPlockKey(index)];
+      const parameterLock = currentStep?.parameterLocks[parameterPlockKey(id)];
       const value = parameterLock
         ? parameterLock.value
-        : trackParameterValues[index];
+        : trackParameterValues[id];
       return value ?? null;
     },
     setRawValue(update, value) {
@@ -146,13 +145,13 @@ export function getUIMidiParameter(index: number): UIParameterConfig<number> {
         );
         const currentStep = getHeldStep(draft);
         if (currentStep) {
-          currentStep.parameterLocks[parameterPlockKey(index)] = {
-            index,
+          currentStep.parameterLocks[parameterPlockKey(id)] = {
+            id,
             type: 'midiParameter',
             value,
           };
         } else {
-          track.parameterValues[index] = value;
+          track.parameterValues[id] = value;
           // TODO: this would be where we broadcast the MIDI CC to a live track, I guess??
           // that COULD be done as a diff thing, I guess, seems kind of silly though
         }

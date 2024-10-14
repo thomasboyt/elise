@@ -3,6 +3,8 @@ import {
   createEmptyScene,
   createEmptyTrack,
   EliseState,
+  MidiParameter,
+  MidiParameterType,
   MidiStep,
   NoteParameter,
 } from './state';
@@ -209,5 +211,90 @@ export function setNextStepNoteParameter(
 ) {
   update((draft) => {
     draft.ui.nextStepSettings[parameter] = value;
+  });
+}
+
+export function addMidiParameterConfigurationForTrack(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+  configuration: MidiParameter,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    track.parameterConfiguration[id] = configuration;
+    track.parameterOrder.push(id);
+  });
+}
+
+export function removeMidiParameterConfigurationForTrack(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    delete track.parameterConfiguration[id];
+    track.parameterOrder = track.parameterOrder.filter((item) => item !== id);
+    const activeSteps = track.steps.filter((step) => step !== null);
+    for (const step of activeSteps) {
+      delete step.parameterLocks[id];
+    }
+  });
+}
+
+export function changeMidiNoteChannelForTrack(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  channel: number | null,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    track.midiNoteChannel = channel;
+  });
+}
+
+export function setMidiChannelForParameter(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+  channel: number | null,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    track.parameterConfiguration[id].channel = channel;
+  });
+}
+
+export function setTypeForParameter(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+  type: MidiParameterType,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    track.parameterConfiguration[id].type = type;
+  });
+}
+
+export function setControllerNumberForParameter(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+  controllerNumber: number,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    const param = track.parameterConfiguration[id];
+    if (param.type === 'midiCc') {
+      param.controllerNumber = controllerNumber;
+    }
   });
 }

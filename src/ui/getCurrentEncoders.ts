@@ -35,8 +35,8 @@ export function getParameterEncoders(state: EliseState): Encoder[] {
   const { currentScene, currentTrack } = state.ui;
   const track = getTrackOrThrow(state, currentScene, currentTrack);
 
-  return track.parameterConfiguration.map((_, idx): Encoder => {
-    const param = getUIMidiParameter(idx);
+  return track.parameterOrder.map((id): Encoder => {
+    const param = getUIMidiParameter(id);
     return parameterToEncoder(param, state);
   });
 }

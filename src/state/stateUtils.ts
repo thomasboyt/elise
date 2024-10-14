@@ -1,1 +1,1 @@
-export const parameterPlockKey = (idx: number) => `parameter-${idx}`;
+export const parameterPlockKey = (id: string) => `midiParameter-${id}`;
