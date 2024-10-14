@@ -1,5 +1,13 @@
 import { ProjectStorage } from './state/state';
 
+/**
+ * Track 1: Kick
+ * Track 2: Snare
+ * Track 3: Hats
+ * Track 4: Microfreak bass
+ *  - Steps 10 and 12 have cutoff adjusted
+ *  - TODO: set some different gate lengths for display
+ */
 export const demoProject: ProjectStorage = {
   bpm: 120,
   scenes: [
@@ -259,23 +267,85 @@ export const demoProject: ProjectStorage = {
             'cea6e553-fe24-49dd-b576-28482d56148c',
             'a4749892-101e-49b5-ab6e-7f82d8caf113',
           ],
-          parameterValues: {},
+          parameterValues: {
+            '9509a149-8182-42cc-9cce-518ccf19e910': 80,
+          },
           steps: [
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {},
+              offset: 0,
+              velocity: 127,
+            },
             null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {},
+              offset: 0,
+              velocity: 127,
+            },
             null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {},
+              offset: 0,
+              velocity: 127,
+            },
             null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {},
+              offset: 0,
+              velocity: 127,
+            },
             null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {},
+              offset: 0,
+              velocity: 127,
+            },
             null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {
+                'midiParameter-9509a149-8182-42cc-9cce-518ccf19e910': {
+                  id: '9509a149-8182-42cc-9cce-518ccf19e910',
+                  type: 'midiParameter',
+                  value: 127,
+                },
+              },
+              offset: 0,
+              velocity: 127,
+            },
             null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {
+                'midiParameter-9509a149-8182-42cc-9cce-518ccf19e910': {
+                  id: '9509a149-8182-42cc-9cce-518ccf19e910',
+                  type: 'midiParameter',
+                  value: 127,
+                },
+              },
+              offset: 0,
+              velocity: 127,
+            },
             null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
+            {
+              gate: 1,
+              notes: [60],
+              parameterLocks: {},
+              offset: 0,
+              velocity: 127,
+            },
             null,
           ],
           swing: 0,

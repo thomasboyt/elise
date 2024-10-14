@@ -23,7 +23,7 @@ export function GridView() {
   const steps = getCells(state); // memoize me probably
 
   return (
-    <BaseGrid>
+    <BaseGrid labelWidth={100}>
       {steps.map((track, idx) => (
         <GridRow key={idx} rowLabel={`Track ${idx}`}>
           {track.map((step, idx) => (

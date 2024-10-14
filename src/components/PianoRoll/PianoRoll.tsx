@@ -6,12 +6,16 @@ import { extendArrayToLength } from '../../util/extendArrayToLength';
 import { CellState, GridCell } from '../BaseGrid/GridCell';
 import { GridRow } from '../BaseGrid/GridRow';
 import { BaseGrid } from '../BaseGrid/BaseGrid';
+import { AutomationDisplay } from '../AutomationDisplay/AutomationDisplay';
+import css from '../EliseUI.module.css';
+
+const LABEL_WIDTH = 100;
 
 function getCells(track: MidiClipTrack): CellState[][] {
   const steps = extendArrayToLength(track.steps, 64, null);
   return [...new Array(128)].map((_, rowNote) => {
     return steps.map((step, stepIdx): CellState => {
-      if (stepIdx > track.steps.length) {
+      if (stepIdx >= track.steps.length) {
         return 'disabled';
       }
       const hasNote = step?.notes.find((note) => note === rowNote);
@@ -63,5 +67,12 @@ export function PianoRoll() {
     })
     .reverse();
 
-  return <BaseGrid scroll>{gridRows}</BaseGrid>;
+  return (
+    <div className={css.gridAndAutomationContainer}>
+      <BaseGrid scroll labelWidth={LABEL_WIDTH}>
+        {gridRows}
+      </BaseGrid>
+      <AutomationDisplay xOffset={LABEL_WIDTH} />
+    </div>
+  );
 }

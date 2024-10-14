@@ -1,0 +1,14 @@
+.automationDisplay {
+  display: flex;
+  flex-flow: row;
+  overflow: hidden;
+}
+
+.label {
+  flex: 0 0 auto;
+  border-right: 1px var(--orange) solid;
+}
+
+.automationGraph {
+  flex: 1 1 100%;
+}

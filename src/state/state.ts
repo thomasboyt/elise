@@ -135,6 +135,7 @@ export interface UIState {
   currentTrack: number;
   currentScene: number;
   currentStepsPage: number;
+  currentAutomationDisplay: string | null;
 
   // The settings that the next note will be placed at.
   // This is different from how Elektron sequencers work - those just require
@@ -188,6 +189,7 @@ export function createDefaultUIState(): UIState {
     currentScene: 0,
     currentTrack: 0,
     currentStepsPage: 0,
+    currentAutomationDisplay: null,
 
     nextStepSettings: {
       notes: [60],

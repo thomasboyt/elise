@@ -163,6 +163,7 @@ export function getUIMidiParameter(id: string): UIParameterConfig<number> {
           // TODO: this would be where we broadcast the MIDI CC to a live track, I guess??
           // that COULD be done as a diff thing, I guess, seems kind of silly though
         }
+        draft.ui.currentAutomationDisplay = id;
       });
     },
     getDerivedValue(rawValue) {
