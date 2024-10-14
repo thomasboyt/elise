@@ -7,11 +7,13 @@ import {
 import { EliseState, MidiParameter, NoteParameter } from '../state/state';
 import { parameterPlockKey } from '../state/stateUtils';
 
-export interface UIParameterConfig {
+export interface UIParameterConfig<T> {
   key: string;
   label(state: EliseState): string;
-  get(state: EliseState): number | null;
-  set(update: Updater<EliseState>, value: number): void;
+  getRawValue(state: EliseState): number | null;
+  setRawValue(update: Updater<EliseState>, value: number): void;
+  getDerivedValue(rawValue: number): T;
+  getDisplayValue(rawValue: number): string;
 }
 
 function setNoteValue(draft: EliseState, key: NoteParameter, value: number) {
@@ -26,45 +28,65 @@ function setNoteValue(draft: EliseState, key: NoteParameter, value: number) {
   }
 }
 
-const velocity: UIParameterConfig = {
+const velocity: UIParameterConfig<number> = {
   key: 'velocity',
   label: () => 'Velocity',
-  get(state) {
+  getRawValue(state) {
     const currentNote = getHeldStep(state);
     return (currentNote ?? state.ui.nextStepSettings).velocity;
   },
-  set(update, value) {
+  setRawValue(update, value) {
     update((draft) => {
       setNoteValue(draft, 'velocity', value);
     });
   },
+  getDerivedValue(rawValue) {
+    return rawValue;
+  },
+  getDisplayValue(rawValue) {
+    return `${Math.round((rawValue / 127) * 100)}%`;
+  },
 };
 
-const gate: UIParameterConfig = {
+// Gate is defined as a number of steps, 1-64
+// going to have to see how much this sucks in practice lol
+const gate: UIParameterConfig<number> = {
   key: 'gate',
   label: () => 'Gate length',
-  get(state) {
+  getRawValue(state) {
     const currentNote = getHeldStep(state);
     return (currentNote ?? state.ui.nextStepSettings).gate;
   },
-  set(update, value) {
+  setRawValue(update, value) {
     update((draft) => {
       setNoteValue(draft, 'gate', value);
     });
   },
+  getDerivedValue(rawValue) {
+    return Math.ceil((rawValue + 1) / 2);
+  },
+  getDisplayValue(rawValue) {
+    return `${Math.ceil((rawValue + 1) / 2)}`;
+  },
 };
 
-const offset: UIParameterConfig = {
+const offset: UIParameterConfig<number> = {
   key: 'offset',
   label: () => 'Offset',
-  get(state) {
+  getRawValue(state) {
     const currentNote = getHeldStep(state);
     return (currentNote ?? state.ui.nextStepSettings).offset;
   },
-  set(update, value) {
+  setRawValue(update, value) {
     update((draft) => {
       setNoteValue(draft, 'offset', value);
     });
+  },
+  getDerivedValue(rawValue) {
+    return rawValue;
+  },
+  getDisplayValue(rawValue) {
+    return rawValue.toString();
   },
 };
 
@@ -84,7 +106,7 @@ function getParameterLabel(parameter: MidiParameter): string {
   throw new Error(`Unrecognized parameter type ${parameter}`);
 }
 
-export function getUIMidiParameter(index: number): UIParameterConfig {
+export function getUIMidiParameter(index: number): UIParameterConfig<number> {
   return {
     key: `midiParameter-${index}`,
     label(state) {
@@ -99,7 +121,7 @@ export function getUIMidiParameter(index: number): UIParameterConfig {
       }
       return getParameterLabel(parameter);
     },
-    get(state) {
+    getRawValue(state) {
       const track = getTrackOrThrow(
         state,
         state.ui.currentScene,
@@ -113,9 +135,9 @@ export function getUIMidiParameter(index: number): UIParameterConfig {
       const value = parameterLock
         ? parameterLock.value
         : trackParameterValues[index];
-      return value;
+      return value ?? null;
     },
-    set(update, value) {
+    setRawValue(update, value) {
       update((draft) => {
         const track = getTrackOrThrow(
           draft,
@@ -135,6 +157,12 @@ export function getUIMidiParameter(index: number): UIParameterConfig {
           // that COULD be done as a diff thing, I guess, seems kind of silly though
         }
       });
+    },
+    getDerivedValue(rawValue) {
+      return rawValue;
+    },
+    getDisplayValue(rawValue) {
+      return rawValue.toString();
     },
   };
 }

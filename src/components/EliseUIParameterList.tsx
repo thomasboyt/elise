@@ -3,7 +3,7 @@ import { EliseUIParameter } from './EliseUIParameter';
 import css from './EliseUI.module.css';
 
 interface Props {
-  parameters: UIParameterConfig[];
+  parameters: UIParameterConfig<unknown>[];
 }
 
 export function EliseUIParameterList(props: Props) {

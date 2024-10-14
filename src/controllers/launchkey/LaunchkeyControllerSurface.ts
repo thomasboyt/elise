@@ -181,7 +181,11 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
    * @param encoderIndex 0-8, left to right.
    * @param value The value of the encoder.
    */
-  updateEncoderValue(encoderIndex: number, value: number): void {
+  updateEncoderValue(
+    encoderIndex: number,
+    value: number,
+    displayValue: string,
+  ): void {
     let midiCc;
 
     if (
@@ -201,7 +205,7 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
           this.sku,
           displayEncoderTargetOffset + encoderIndex,
           1,
-          `${value}`, // TODO: use string label
+          displayValue,
         ),
       );
     }

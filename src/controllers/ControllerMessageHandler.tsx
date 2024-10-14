@@ -54,10 +54,10 @@ export function ControllerMessageHandler() {
         if (!noteParameter) {
           return;
         }
-        noteParameter.set(update, value);
+        noteParameter.setRawValue(update, value);
       } else if (stateRef.current.ui.encoderBank === 'parameters') {
         const midiParameter = getUIMidiParameter(encoderIndex);
-        midiParameter.set(update, value);
+        midiParameter.setRawValue(update, value);
       }
     }
 

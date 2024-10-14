@@ -13,7 +13,6 @@ export interface Encoder {
   name: string;
   // A null value means the parameter is disabled and any inputs
   // will be ignored
-  value: number | null;
-  // TODO
-  // displayType: EncoderDisplayType;
+  rawValue: number | null;
+  displayValue: string | null;
 }

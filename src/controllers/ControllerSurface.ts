@@ -79,7 +79,11 @@ export abstract class ControllerSurface
   abstract changePadMode(padMode: PadMode): void;
   abstract updatePadColor(padIndex: number, color: PadColor): void;
   abstract updateEncoderName(encoderIndex: number, name: string): void;
-  abstract updateEncoderValue(encoderIndex: number, value: number): void;
+  abstract updateEncoderValue(
+    encoderIndex: number,
+    value: number,
+    displayValue: string,
+  ): void;
 
   private lastSnapshot: ControllerState = initControllerState();
 
@@ -102,7 +106,8 @@ export abstract class ControllerSurface
       );
       this.updateEncoderValue(
         encoderIndex,
-        snapshot.encoders[encoderIndex]?.value ?? 0,
+        snapshot.encoders[encoderIndex]?.rawValue ?? 0,
+        snapshot.encoders[encoderIndex]?.displayValue ?? '---',
       );
     }
   }
@@ -139,12 +144,13 @@ export abstract class ControllerSurface
         );
       }
       if (
-        prev.encoders[encoderIndex]?.value !==
-        snapshot.encoders[encoderIndex]?.value
+        prev.encoders[encoderIndex]?.rawValue !==
+        snapshot.encoders[encoderIndex]?.rawValue
       ) {
         this.updateEncoderValue(
           encoderIndex,
-          snapshot.encoders[encoderIndex]?.value ?? 0,
+          snapshot.encoders[encoderIndex]?.rawValue ?? 0,
+          snapshot.encoders[encoderIndex]?.displayValue ?? '---',
         );
       }
     }

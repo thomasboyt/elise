@@ -1,22 +1,28 @@
 import { getTrackOrThrow } from '../state/accessors';
 import { EliseState } from '../state/state';
-import { getUIMidiParameter, noteParameters } from './uiParameters';
+import {
+  getUIMidiParameter,
+  noteParameters,
+  UIParameterConfig,
+} from './uiParameters';
 import { Encoder } from './uiModels';
+
+function parameterToEncoder(
+  parameter: UIParameterConfig<unknown>,
+  state: EliseState,
+): Encoder {
+  const name = parameter.label(state);
+  const rawValue = parameter.getRawValue(state);
+  const displayValue =
+    rawValue !== null ? parameter.getDisplayValue(rawValue) : null;
+  return { name, rawValue, displayValue };
+}
 
 export function getNoteEncoders(state: EliseState): (Encoder | null)[] {
   return [
-    {
-      name: noteParameters.velocity.label(state),
-      value: noteParameters.velocity.get(state),
-    },
-    {
-      name: noteParameters.gate.label(state),
-      value: noteParameters.gate.get(state),
-    },
-    {
-      name: noteParameters.offset.label(state),
-      value: noteParameters.offset.get(state),
-    },
+    parameterToEncoder(noteParameters.velocity, state),
+    parameterToEncoder(noteParameters.gate, state),
+    parameterToEncoder(noteParameters.offset, state),
     null,
     null,
     null,
@@ -31,10 +37,7 @@ export function getParameterEncoders(state: EliseState): Encoder[] {
 
   return track.parameterConfiguration.map((_, idx): Encoder => {
     const param = getUIMidiParameter(idx);
-    return {
-      name: param.label(state),
-      value: param.get(state),
-    };
+    return parameterToEncoder(param, state);
   });
 }
 
