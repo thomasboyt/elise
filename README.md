@@ -28,6 +28,7 @@ Tracks have *mute states* that can be toggled during playback.
 
 * [x] Parameter locking
 * [ ] Touch UI for adjusting parameters
+* [ ] Touch UI for inputting notes
 * [ ] MIDI parameter configuration page
 * [x] Grid view
 * [ ] Piano roll
