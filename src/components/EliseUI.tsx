@@ -46,6 +46,7 @@ export function EliseUI() {
           >
             Main
           </button>
+          <button disabled>MIDI Configuration</button>
           <button disabled>Piano Roll</button>
           <button
             className={classNames({

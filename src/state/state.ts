@@ -96,7 +96,11 @@ export interface ProjectStorage {
 
 export type EncoderBank = 'note' | 'parameters' | 'lfo' | 'global';
 export type NoteParameter = 'gate' | 'velocity' | 'offset';
-export type DisplayScreen = 'main' | 'pianoRoll' | 'gridView';
+export type DisplayScreen =
+  | 'main'
+  | 'midiConfiguration'
+  | 'pianoRoll'
+  | 'gridView';
 
 export interface NextStepSettings {
   notes: number[];
