@@ -1,5 +1,6 @@
 import { getTrackOrThrow } from '../../state/accessors';
 import {
+  addMidiParameterConfigurationForTrack,
   changeMidiNoteChannelForTrack,
   setControllerNumberForParameter,
   setMidiChannelForParameter,
@@ -33,7 +34,9 @@ export function MIDIConfiguration() {
           )
         }
       />
+
       <h3>Parameters</h3>
+
       <table>
         <thead>
           <tr>
@@ -96,6 +99,27 @@ export function MIDIConfiguration() {
           })}
         </tbody>
       </table>
+
+      <button
+        onClick={() =>
+          addMidiParameterConfigurationForTrack(
+            update,
+            state.ui.currentScene,
+            state.ui.currentTrack,
+            crypto.randomUUID(),
+            {
+              channel: null,
+              type: 'midiCc',
+              controllerNumber: 1,
+              destination: null,
+              displayValueType: 'number',
+              label: 'TODO',
+            },
+          )
+        }
+      >
+        Add
+      </button>
     </>
   );
 }
