@@ -293,6 +293,12 @@ export function setMidiParameterType(
   update((draft) => {
     const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
     track.parameterConfiguration[id].type = type;
+    if (
+      track.parameterConfiguration[id].type === 'midiCc' &&
+      !track.parameterConfiguration[id].controllerNumber
+    ) {
+      track.parameterConfiguration[id].controllerNumber = 0;
+    }
   });
 }
 

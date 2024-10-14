@@ -10,7 +10,7 @@ export const demoProject: ProjectStorage = {
           lfo: null,
           parameterConfiguration: {
             'c4a7ae9c-afae-42b0-95b4-c5e2da8b5c25': {
-              channel: 1,
+              channel: null,
               type: 'midiCc',
               controllerNumber: 89,
               destination: null,
@@ -18,26 +18,17 @@ export const demoProject: ProjectStorage = {
               label: 'Kick Decay',
             },
             '7b55f137-94ea-4c3a-b457-e30117447115': {
-              channel: 1,
+              channel: null,
               type: 'midiCc',
               controllerNumber: 62,
               destination: null,
               displayValueType: 'number',
               label: 'Kick Tuning',
             },
-            '2e7388da-dee7-470b-b495-f27284204a7f': {
-              channel: null,
-              type: 'midiCc',
-              controllerNumber: 1,
-              destination: null,
-              displayValueType: 'number',
-              label: null,
-            },
           },
           parameterOrder: [
             'c4a7ae9c-afae-42b0-95b4-c5e2da8b5c25',
             '7b55f137-94ea-4c3a-b457-e30117447115',
-            '2e7388da-dee7-470b-b495-f27284204a7f',
           ],
           parameterValues: {},
           steps: [

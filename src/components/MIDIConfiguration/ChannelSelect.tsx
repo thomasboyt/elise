@@ -1,4 +1,5 @@
 interface Props {
+  noteChannel?: number | null;
   value: number | null;
   onChange(channel: number | null): void;
 }
@@ -10,13 +11,21 @@ const channelItems = [...new Array(16)].map((_, idx) => (
 ));
 
 export function ChannelSelect(props: Props) {
-  const { value, onChange } = props;
-  const items = [
+  const { value, onChange, noteChannel } = props;
+
+  let unsetItem = (
     <option key="unset" value="unset">
       ---
-    </option>,
-    ...channelItems,
-  ];
+    </option>
+  );
+  if (noteChannel !== undefined) {
+    unsetItem = (
+      <option key="unset" value="unset">
+        Use note channel {noteChannel !== null && `(${noteChannel})`}
+      </option>
+    );
+  }
+  const items = [unsetItem, ...channelItems];
 
   return (
     <select

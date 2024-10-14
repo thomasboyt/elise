@@ -96,6 +96,7 @@ export function MIDIConfiguration() {
                 </td>
                 <td>
                   <ChannelSelect
+                    noteChannel={track.midiNoteChannel}
                     value={param.channel}
                     onChange={(channel) =>
                       setMidiParameterChannel(
