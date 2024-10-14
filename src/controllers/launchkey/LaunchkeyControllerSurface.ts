@@ -23,7 +23,6 @@ import { ControllerSurface } from '../ControllerSurface';
 
 export class LaunchkeyControllerSurface extends ControllerSurface {
   private initialized = false;
-  private padMode: PadMode = 'clip';
 
   // Launchkey state
   private launchkeyPadMode: LKPadMode | null = null;
@@ -125,12 +124,11 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
 
   changePadMode(padMode: PadMode): void {
     this.logOutgoing('Change pad mode', padMode);
-    this.padMode = padMode;
-    if (this.padMode === 'clip') {
+    if (padMode === 'clip') {
       this.setStationaryDisplay('Sequence', 'Bar x of y');
-    } else if (this.padMode === 'track') {
+    } else if (padMode === 'track') {
       this.setStationaryDisplay('', 'Select track');
-    } else if (this.padMode === 'scene') {
+    } else if (padMode === 'scene') {
       this.setStationaryDisplay('', 'Select scene');
     }
   }
@@ -380,26 +378,30 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
 
   private setShiftMode() {
     if (
-      this.padMode === 'clip' ||
-      this.padMode === 'track' ||
-      this.padMode === 'scene' ||
-      this.padMode === 'mute'
+      this.state.padMode === 'clip' ||
+      this.state.padMode === 'track' ||
+      this.state.padMode === 'scene' ||
+      this.state.padMode === 'mute'
     ) {
-      if (!this.launchHeld && !this.funcHeld && this.padMode !== 'clip') {
+      if (!this.launchHeld && !this.funcHeld && this.state.padMode !== 'clip') {
         this.emit('enterPadClipMode');
       } else if (
         this.launchHeld &&
         !this.funcHeld &&
-        this.padMode !== 'scene'
+        this.state.padMode !== 'scene'
       ) {
         this.emit('enterPadSceneMode');
       } else if (
         !this.launchHeld &&
         this.funcHeld &&
-        this.padMode !== 'track'
+        this.state.padMode !== 'track'
       ) {
         this.emit('enterPadTrackMode');
-      } else if (this.launchHeld && this.funcHeld && this.padMode !== 'mute') {
+      } else if (
+        this.launchHeld &&
+        this.funcHeld &&
+        this.state.padMode !== 'mute'
+      ) {
         this.emit('enterPadMuteMode');
       }
     }

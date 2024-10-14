@@ -85,10 +85,10 @@ export abstract class ControllerSurface
     displayValue: string,
   ): void;
 
-  private lastSnapshot: ControllerState = initControllerState();
+  protected state: ControllerState = initControllerState();
 
   resetState(snapshot: ControllerState): void {
-    this.lastSnapshot = snapshot;
+    this.state = snapshot;
     this.changePadMode(snapshot.padMode);
     this.changeEncoderBank(snapshot.encoderBank);
     for (let padIndex = 0; padIndex < snapshot.pads.length; padIndex += 1) {
@@ -113,8 +113,8 @@ export abstract class ControllerSurface
   }
 
   handleStateUpdate(snapshot: ControllerState): void {
-    const prev = this.lastSnapshot!;
-    this.lastSnapshot = snapshot;
+    const prev = this.state!;
+    this.state = snapshot;
 
     if (snapshot.padMode !== prev.padMode) {
       this.changePadMode(snapshot.padMode);

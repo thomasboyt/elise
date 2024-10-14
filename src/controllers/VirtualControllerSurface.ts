@@ -30,14 +30,14 @@ export interface VirtualControllerState {
  */
 export class VirtualControllerSurface extends ControllerSurface {
   private subscribers = new Set<() => void>([]);
-  private state: VirtualControllerState = {
+  private deviceState: VirtualControllerState = {
     encoders: [...new Array(8)].map(() => ({ label: null, value: null })),
     pads: [...new Array(16)].map(() => ({ color: 'off' })),
   };
 
   // Used for React components to get state
   getVirtualControllerState = () => {
-    return this.state;
+    return this.deviceState;
   };
 
   // Used for React components to subscriber to state changes
@@ -67,21 +67,21 @@ export class VirtualControllerSurface extends ControllerSurface {
   }
 
   updateEncoderName(encoderIndex: number, name: string): void {
-    this.state = produce(this.state, (draft) => {
+    this.deviceState = produce(this.deviceState, (draft) => {
       draft.encoders[encoderIndex].label = name;
     });
     this.updateSubscribers();
   }
 
   updateEncoderValue(encoderIndex: number, value: number): void {
-    this.state = produce(this.state, (draft) => {
+    this.deviceState = produce(this.deviceState, (draft) => {
       draft.encoders[encoderIndex].value = value;
     });
     this.updateSubscribers();
   }
 
   updatePadColor(padIndex: number, color: PadColor): void {
-    this.state = produce(this.state, (draft) => {
+    this.deviceState = produce(this.deviceState, (draft) => {
       draft.pads[padIndex].color = color;
     });
     this.updateSubscribers();

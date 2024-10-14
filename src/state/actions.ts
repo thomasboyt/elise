@@ -86,6 +86,7 @@ export function handleEnterPadClipMode(
 ) {
   if (currentState.ui.heldPad !== null) {
     handlePadOff(currentState, update, currentState.ui.heldPad);
+    return;
   }
   changePadMode(update, 'clip');
 }
@@ -95,7 +96,7 @@ export function handleEnterPadSceneMode(
   update: Updater<EliseState>,
 ) {
   if (currentState.ui.heldPad !== null) {
-    handlePadOff(currentState, update, currentState.ui.heldPad);
+    return;
   }
   changePadMode(update, 'scene');
 }
@@ -105,7 +106,7 @@ export function handleEnterPadTrackMode(
   update: Updater<EliseState>,
 ) {
   if (currentState.ui.heldPad !== null) {
-    handlePadOff(currentState, update, currentState.ui.heldPad);
+    return;
   }
   changePadMode(update, 'track');
 }
