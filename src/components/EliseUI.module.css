@@ -92,14 +92,21 @@
   grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
-.pads {
-  composes: gridContainer listReset;
+.padsSection {
   flex: 0 0 36%;
+  display: flex;
+  border: 1px var(--orange) solid;
+}
+
+.pads {
+  flex: 0 1 100%;
+  height: 100%;
+  composes: gridContainer listReset;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   background-color: var(--orange);
   grid-gap: 1px;
-  border: 1px var(--orange) solid;
+  border-right: 1px var(--orange) solid;
 }
 
 .pad {
@@ -111,6 +118,26 @@
 
 .padLabel {
   font-size: 24px;
+}
+
+.padArrows {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.padArrows button {
+  border: 0;
+  background: black;
+  color: var(--orange);
+  font-family: inherit;
+  font-size: inherit;
+  width: 50px;
+}
+.padArrows button:first-of-type {
+  border-bottom: 1px var(--orange) solid;
+}
+.padArrows button:disabled {
+  opacity: 0.5;
 }
 
 .buttonRow {

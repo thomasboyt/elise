@@ -224,3 +224,25 @@ export function handleChangeDisplayScreen(
     draft.ui.displayScreen = displayScreen;
   });
 }
+
+export function handleNextClipBar(
+  _currentState: EliseState,
+  update: Updater<EliseState>,
+) {
+  update((draft) => {
+    if (draft.ui.currentStepsPage !== 3) {
+      draft.ui.currentStepsPage += 1;
+    }
+  });
+}
+
+export function handlePrevClipBar(
+  _currentState: EliseState,
+  update: Updater<EliseState>,
+) {
+  update((draft) => {
+    if (draft.ui.currentStepsPage !== 0) {
+      draft.ui.currentStepsPage -= 1;
+    }
+  });
+}

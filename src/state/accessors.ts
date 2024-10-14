@@ -101,3 +101,13 @@ export function getHeldStep(state: EliseState): MidiStep | null {
     currentStepIndex,
   );
 }
+
+export function getMaximumStepPage(
+  state: EliseState,
+  sceneIndex: number,
+  trackIndex: number,
+): number {
+  const track = state.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+  const { pageLength, steps } = track;
+  return Math.ceil(steps.length / pageLength) - 1;
+}

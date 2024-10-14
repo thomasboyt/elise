@@ -14,6 +14,8 @@ import {
   handlePadOn,
   handlePrevEncoderBank,
   handleNextEncoderBank,
+  handleNextClipBar,
+  handlePrevClipBar,
 } from '../state/actions';
 import {
   getUIMidiParameter,
@@ -81,6 +83,8 @@ export function ControllerMessageHandler() {
     const boundPrevEncoderBank = bind(handlePrevEncoderBank);
     const boundKeyboardNoteOn = bind(handleKeyboardNoteOn);
     const boundKeyboardNoteOff = bind(handleKeyboardNoteOff);
+    const boundNextClipBar = bind(handleNextClipBar);
+    const boundPrevClipBar = bind(handlePrevClipBar);
 
     controller.on('padOn', boundPadOn);
     controller.on('padOff', boundPadOff);
@@ -90,8 +94,8 @@ export function ControllerMessageHandler() {
     // controller.on('enterPadMuteMode', handleEnterPadMuteMode);
     // controller.on('enterPadDrumMode', handleEnterPadDrumMode);
     // controller.on('enterPadChromaticMode', handleEnterPadChromaticMode);
-    // controller.on('nextClipBar', handleNextClipBar);
-    // controller.on('prevClipBar', handlePrevClipBar);
+    controller.on('nextClipBar', boundNextClipBar);
+    controller.on('prevClipBar', boundPrevClipBar);
     controller.on('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
     // controller.on('relativeEncoderUpdated', handleRelativeEncoderUpdated);
     controller.on('nextEncoderBank', boundNextEncoderBank);
@@ -108,8 +112,8 @@ export function ControllerMessageHandler() {
       // controller.off('enterPadMuteMode', handleEnterPadMuteMode);
       // controller.off('enterPadDrumMode', handleEnterPadDrumMode);
       // controller.off('enterPadChromaticMode', handleEnterPadChromaticMode);
-      // controller.off('nextClipBar', handleNextClipBar);
-      // controller.off('prevClipBar', handlePrevClipBar);
+      controller.off('nextClipBar', boundNextClipBar);
+      controller.off('prevClipBar', boundPrevClipBar);
       controller.off('absoluteEncoderUpdated', handleAbsoluteEncoderUpdated);
       // controller.off('relativeEncoderUpdated', handleRelativeEncoderUpdated);
       controller.off('nextEncoderBank', boundNextEncoderBank);

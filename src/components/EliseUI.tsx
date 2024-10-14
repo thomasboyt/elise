@@ -1,20 +1,20 @@
 import classNames from 'classnames';
 import { useHardwareConnected } from '../controllers/useMidiController';
 import {
-  handlePadOff,
-  handlePadOn,
   handleEnterPadClipMode,
   handleEnterPadSceneMode,
   handleEnterPadTrackMode,
   handleChangeDisplayScreen,
 } from '../state/actions';
 import { useEliseContext } from '../state/useEliseContext';
-import { getPadColors } from '../ui/getPadColors';
-import { ElisePad } from './ElisePad';
 import { EliseUIButtonRow } from './EliseUIButtonRow';
-import { getStepIndexFromPadInClipMode } from '../state/accessors';
+import {
+  getMaximumStepPage,
+  getStepIndexFromPadInClipMode,
+} from '../state/accessors';
 import { EliseUIEncoderBanks } from './EliseUIEncoderBanks';
 import { GridView } from './GridView/GridView';
+import { EliseUIPads } from './EliseUIPads';
 import css from './EliseUI.module.css';
 
 export function EliseUI() {
@@ -26,8 +26,12 @@ export function EliseUI() {
       ? null
       : getStepIndexFromPadInClipMode(state, state.ui.heldPad);
 
-  const pads = getPadColors(state);
   const padMode = state.ui.padMode;
+  const maxPage = getMaximumStepPage(
+    state,
+    state.ui.currentScene,
+    state.ui.currentTrack,
+  );
 
   return (
     <div className={css.eliseUi}>
@@ -68,19 +72,19 @@ export function EliseUI() {
             className={classNames({ [css.activeButton]: padMode === 'clip' })}
             onClick={() => handleEnterPadClipMode(state, update)}
           >
-            Step
+            Bar ({state.ui.currentStepsPage + 1}/{maxPage + 1})
           </button>
           <button
             className={classNames({ [css.activeButton]: padMode === 'track' })}
             onClick={() => handleEnterPadTrackMode(state, update)}
           >
-            Track
+            Track ({state.ui.currentTrack + 1})
           </button>
           <button
             className={classNames({ [css.activeButton]: padMode === 'scene' })}
             onClick={() => handleEnterPadSceneMode(state, update)}
           >
-            Scene
+            Scene ({state.ui.currentScene + 1})
           </button>
           <button disabled>Mute States</button>
           <button disabled>Drum</button>
@@ -88,21 +92,7 @@ export function EliseUI() {
         </EliseUIButtonRow>
       </div>
 
-      <ul className={css.pads}>
-        {pads.map((color, idx) => (
-          <ElisePad
-            key={idx}
-            padIndex={idx}
-            color={color}
-            onDown={() => {
-              handlePadOn(state, update, idx);
-            }}
-            onUp={() => {
-              handlePadOff(state, update, idx);
-            }}
-          />
-        ))}
-      </ul>
+      <EliseUIPads />
     </div>
   );
 }

@@ -7,7 +7,8 @@ import {
   NoteParameter,
 } from './state';
 import { PadMode } from '../ui/uiModels';
-import { getScene, getTrack } from './accessors';
+import { getMaximumStepPage, getScene, getTrack } from './accessors';
+import { extendArrayToLength } from '../util/extendArrayToLength';
 
 export function setHeldPad(
   update: Updater<EliseState>,
@@ -41,6 +42,10 @@ export function changeTrack(update: Updater<EliseState>, trackIndex: number) {
         createEmptyTrack();
     }
     draft.ui.currentTrack = trackIndex;
+    const maxStepPage = getMaximumStepPage(draft, currentScene, trackIndex);
+    if (draft.ui.currentStepsPage > maxStepPage) {
+      draft.ui.currentStepsPage = maxStepPage;
+    }
   });
 }
 
@@ -52,6 +57,14 @@ export function changeScene(update: Updater<EliseState>, sceneIndex: number) {
         createEmptyTrack();
     }
     draft.ui.currentScene = sceneIndex;
+    const maxStepPage = getMaximumStepPage(
+      draft,
+      sceneIndex,
+      draft.ui.currentTrack,
+    );
+    if (draft.ui.currentStepsPage > maxStepPage) {
+      draft.ui.currentStepsPage = maxStepPage;
+    }
   });
 }
 
@@ -70,8 +83,18 @@ export function insertNewStep(
       velocity: draft.ui.nextStepSettings.velocity,
     };
 
-    draft.project.scenes[sceneIndex]!.tracks[trackIndex]!.steps[stepIndex] =
-      step;
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    const steps = track.steps;
+
+    if (stepIndex > steps.length) {
+      track.steps = extendArrayToLength(
+        steps,
+        steps.length + track.pageLength,
+        null,
+      );
+    }
+
+    track.steps[stepIndex] = step;
     draft.ui.protectHeldPadDeletion = true;
   });
 }
