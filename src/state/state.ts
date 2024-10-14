@@ -96,6 +96,7 @@ export interface ProjectStorage {
 
 export type EncoderBank = 'note' | 'parameters' | 'lfo' | 'global';
 export type NoteParameter = 'gate' | 'velocity' | 'offset';
+export type DisplayScreen = 'main' | 'pianoRoll' | 'gridView';
 
 export interface NextStepSettings {
   notes: number[];
@@ -114,6 +115,7 @@ export interface NextStepSettings {
 export interface UIState {
   padMode: PadMode;
   encoderBank: EncoderBank;
+  displayScreen: DisplayScreen;
 
   heldPad: number | null;
   heldPadStartTime: number | null; // used to distinguish between "toggle" and "hold"
@@ -175,6 +177,7 @@ export function createDefaultUIState(): UIState {
   return {
     padMode: 'clip',
     encoderBank: 'note',
+    displayScreen: 'main',
 
     heldPad: null,
     heldPadStartTime: null,

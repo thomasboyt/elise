@@ -6,16 +6,15 @@ import {
   handleEnterPadClipMode,
   handleEnterPadSceneMode,
   handleEnterPadTrackMode,
+  handleChangeDisplayScreen,
 } from '../state/actions';
 import { useEliseContext } from '../state/useEliseContext';
 import { getPadColors } from '../ui/getPadColors';
 import { ElisePad } from './ElisePad';
-import { EliseUIEncoderBank } from './EliseUIEncoderBank';
-import { EliseUIParameterList } from './EliseUIParameterList';
-import { EliseUINoteDisplay } from './EliseUINoteDisplay';
-import { getUIMidiParameter, noteParameters } from '../ui/uiParameters';
 import { EliseUIButtonRow } from './EliseUIButtonRow';
 import { getStepIndexFromPadInClipMode } from '../state/accessors';
+import { EliseUIEncoderBanks } from './EliseUIEncoderBanks';
+import { GridView } from './GridView/GridView';
 import css from './EliseUI.module.css';
 
 export function EliseUI() {
@@ -39,33 +38,31 @@ export function EliseUI() {
           {` | Scene: ${state.ui.currentScene} / Track: ${state.ui.currentTrack} / Bar: ${state.ui.currentStepsPage} / Step: ${currentStepIndex ?? '---'}`}
         </div>
         <EliseUIButtonRow className={css.topButtons}>
-          <button className={css.activeButton}>Main</button>
+          <button
+            className={classNames({
+              [css.activeButton]: state.ui.displayScreen === 'main',
+            })}
+            onClick={() => handleChangeDisplayScreen(state, update, 'main')}
+          >
+            Main
+          </button>
           <button disabled>Piano Roll</button>
-          <button disabled>Grid View</button>
+          <button
+            className={classNames({
+              [css.activeButton]: state.ui.displayScreen === 'gridView',
+            })}
+            onClick={() => handleChangeDisplayScreen(state, update, 'gridView')}
+          >
+            Grid View
+          </button>
         </EliseUIButtonRow>
-        <div className={css.encoderBanks}>
-          <EliseUIEncoderBank encoderBank="note" label="Note">
-            <EliseUINoteDisplay />
-            <EliseUIParameterList
-              parameters={[
-                noteParameters.velocity,
-                noteParameters.gate,
-                noteParameters.offset,
-              ]}
-            />
-          </EliseUIEncoderBank>
-          <EliseUIEncoderBank encoderBank="parameters" label="Params">
-            <EliseUIParameterList
-              parameters={[...new Array(8)].map((_, idx) =>
-                getUIMidiParameter(idx),
-              )}
-            />
-          </EliseUIEncoderBank>
-          <EliseUIEncoderBank encoderBank="lfo" label="LFO">
-            <span />
-          </EliseUIEncoderBank>
+
+        <div className={css.mainSection}>
+          {state.ui.displayScreen === 'main' && <EliseUIEncoderBanks />}
+          {state.ui.displayScreen === 'gridView' && <GridView />}
         </div>
-        <EliseUIButtonRow className={css.bottomButtons}>
+
+        <EliseUIButtonRow className={css.padButtons}>
           <button
             className={classNames({ [css.activeButton]: padMode === 'clip' })}
             onClick={() => handleEnterPadClipMode(state, update)}

@@ -1,0 +1,40 @@
+.gridView {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 10% 1fr;
+  grid-auto-rows: 1fr;
+}
+
+.gridTrackLabel,
+.gridTrack {
+  border: 1px var(--orange) solid;
+  overflow: hidden;
+}
+
+.gridTrack {
+  display: grid;
+  width: 100%;
+  grid-auto-flow: column;
+  /* grid-template-rows: 1fr;
+  grid-auto-columns: 1fr; */
+}
+
+.step {
+  border: 1px var(--orange) solid;
+  border-top: 0;
+  border-bottom: 0;
+  height: 100%;
+}
+
+.filledStep {
+  background-color: var(--orange);
+}
+
+.emptyStep {
+  background-color: black;
+}
+
+.disabledStep {
+  opacity: 0.3;
+}

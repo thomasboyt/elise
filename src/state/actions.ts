@@ -1,5 +1,5 @@
 import { Updater } from 'use-immer';
-import { EliseState, EncoderBank } from './state';
+import { DisplayScreen, EliseState, EncoderBank } from './state';
 import {
   getHeldStep,
   getStepIndexFromPadInClipMode,
@@ -212,5 +212,15 @@ export function handleNextEncoderBank(
 
   update((draft) => {
     draft.ui.encoderBank = nextPage;
+  });
+}
+
+export function handleChangeDisplayScreen(
+  _currentState: EliseState,
+  update: Updater<EliseState>,
+  displayScreen: DisplayScreen,
+) {
+  update((draft) => {
+    draft.ui.displayScreen = displayScreen;
   });
 }

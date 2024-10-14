@@ -1,13 +1,9 @@
-:root {
-  --orange: rgb(234, 207, 76);
-}
-
 .eliseUi {
   height: 690px;
   width: 1000px;
   color: var(--orange);
   background: black;
-  font-family: consolas, monaco, monospace;
+  font-family: var(--ui-font-family);
   display: flex;
   flex-flow: column;
 }
@@ -30,7 +26,7 @@
 
 .display {
   flex: 0 1 100vh;
-  overflow-y: auto;
+  overflow: hidden;
   display: flex;
   flex-flow: column;
 }
@@ -41,14 +37,16 @@
 .topButtons {
   flex: 0 0 auto;
 }
-.encoderBanks {
-  flex: 1 0 auto;
+.mainSection {
+  flex: 0 1 100vh;
+  overflow: hidden;
 }
 .padButtons {
   flex: 0 0 auto;
 }
 
 .encoderBanks {
+  height: 100%;
   display: grid;
   grid-template-rows: 1fr 1fr 1fr;
 }
