@@ -19,11 +19,11 @@ interface BaseMidiParameter {
   type: MidiParameterType;
   channel: number | null;
   destination: MidiDestination | null;
+  label: string | null;
 }
 interface MidiCcParameter extends BaseMidiParameter {
   type: 'midiCc';
   controllerNumber: number;
-  label: string;
   displayValueType: 'number' | 'percent';
 }
 interface MidiPcParameter extends BaseMidiParameter {

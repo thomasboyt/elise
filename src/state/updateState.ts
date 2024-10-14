@@ -257,7 +257,20 @@ export function changeMidiNoteChannelForTrack(
   });
 }
 
-export function setMidiChannelForParameter(
+export function setMidiParameterLabel(
+  update: Updater<EliseState>,
+  sceneIndex: number,
+  trackIndex: number,
+  id: string,
+  label: string | null,
+) {
+  update((draft) => {
+    const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+    track.parameterConfiguration[id].label = label;
+  });
+}
+
+export function setMidiParameterChannel(
   update: Updater<EliseState>,
   sceneIndex: number,
   trackIndex: number,
@@ -270,7 +283,7 @@ export function setMidiChannelForParameter(
   });
 }
 
-export function setTypeForParameter(
+export function setMidiParameterType(
   update: Updater<EliseState>,
   sceneIndex: number,
   trackIndex: number,
@@ -283,7 +296,7 @@ export function setTypeForParameter(
   });
 }
 
-export function setControllerNumberForParameter(
+export function setMidiParameterControllerNumber(
   update: Updater<EliseState>,
   sceneIndex: number,
   trackIndex: number,

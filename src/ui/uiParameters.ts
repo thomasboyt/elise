@@ -93,17 +93,25 @@ const offset: UIParameterConfig<number> = {
 export const noteParameters = { velocity, gate, offset };
 export const noteParametersByEncoderIndex = [velocity, gate, offset];
 
-function getParameterLabel(parameter: MidiParameter): string {
+export function getDefaultMidiParameterLabel(parameter: MidiParameter): string {
+  const prefix = `Ch${parameter.channel ?? 'XX'} `;
   if (parameter.type === 'midiCc') {
-    return parameter.label ?? `CC ${parameter.controllerNumber}`;
+    return `${prefix} CC ${parameter.controllerNumber}`;
   }
   if (parameter.type === 'midiPc') {
-    return 'PC';
+    return `${prefix} PC`;
   }
   if (parameter.type === 'midiPitchBend') {
-    return 'Pitch Bend';
+    return `${prefix} Pitch Bend`;
   }
   throw new Error(`Unrecognized parameter type ${parameter}`);
+}
+
+export function getMidiParameterLabel(parameter: MidiParameter): string {
+  if (parameter.label) {
+    return parameter.label;
+  }
+  return getDefaultMidiParameterLabel(parameter);
 }
 
 export function getUIMidiParameter(id: string): UIParameterConfig<number> {
@@ -119,7 +127,7 @@ export function getUIMidiParameter(id: string): UIParameterConfig<number> {
       if (!parameter) {
         return '---';
       }
-      return getParameterLabel(parameter);
+      return getMidiParameterLabel(parameter);
     },
     getRawValue(state) {
       const track = getTrackOrThrow(

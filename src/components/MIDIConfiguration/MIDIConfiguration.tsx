@@ -2,11 +2,16 @@ import { getTrackOrThrow } from '../../state/accessors';
 import {
   addMidiParameterConfigurationForTrack,
   changeMidiNoteChannelForTrack,
-  setControllerNumberForParameter,
-  setMidiChannelForParameter,
-  setTypeForParameter,
+  setMidiParameterControllerNumber,
+  setMidiParameterChannel,
+  setMidiParameterType,
+  setMidiParameterLabel,
 } from '../../state/updateState';
 import { useEliseContext } from '../../state/useEliseContext';
+import {
+  getDefaultMidiParameterLabel,
+  getMidiParameterLabel,
+} from '../../ui/uiParameters';
 import { ChannelSelect } from './ChannelSelect';
 import { ControllerNumberSelect } from './ControllerNumberSelect';
 import { ParamTypeSelect } from './ParamTypeSelect';
@@ -41,6 +46,7 @@ export function MIDIConfiguration() {
         <thead>
           <tr>
             <th scope="col">Channel</th>
+            <th scope="col">Channel</th>
             <th scope="col">Type</th>
             <th scope="col">Controller</th>
           </tr>
@@ -48,13 +54,35 @@ export function MIDIConfiguration() {
         <tbody>
           {parameters.map((id) => {
             const param = track.parameterConfiguration[id];
+            const label = getMidiParameterLabel(param);
+            const hasCustomLabel = param.label !== null;
+
             return (
               <tr key={id}>
+                <td>
+                  <input
+                    type="text"
+                    aria-label="Label"
+                    value={hasCustomLabel ? label : undefined}
+                    placeholder={getDefaultMidiParameterLabel(param)}
+                    onChange={(e) => {
+                      const value =
+                        e.target.value === '' ? null : e.target.value;
+                      setMidiParameterLabel(
+                        update,
+                        state.ui.currentScene,
+                        state.ui.currentTrack,
+                        id,
+                        value,
+                      );
+                    }}
+                  />
+                </td>
                 <td>
                   <ChannelSelect
                     value={param.channel}
                     onChange={(channel) =>
-                      setMidiChannelForParameter(
+                      setMidiParameterChannel(
                         update,
                         state.ui.currentScene,
                         state.ui.currentTrack,
@@ -68,7 +96,7 @@ export function MIDIConfiguration() {
                   <ParamTypeSelect
                     value={param.type}
                     onChange={(type) =>
-                      setTypeForParameter(
+                      setMidiParameterType(
                         update,
                         state.ui.currentScene,
                         state.ui.currentTrack,
@@ -83,7 +111,7 @@ export function MIDIConfiguration() {
                     <ControllerNumberSelect
                       value={param.controllerNumber}
                       onChange={(controllerNumber) =>
-                        setControllerNumberForParameter(
+                        setMidiParameterControllerNumber(
                           update,
                           state.ui.currentScene,
                           state.ui.currentTrack,
@@ -113,7 +141,7 @@ export function MIDIConfiguration() {
               controllerNumber: 1,
               destination: null,
               displayValueType: 'number',
-              label: 'TODO',
+              label: null,
             },
           )
         }
