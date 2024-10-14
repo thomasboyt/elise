@@ -38,6 +38,7 @@ Tracks have *mute states* that can be toggled during playback.
 Once this is done, I'll work on playback mode:
 
 * [ ] Playback mode basics (press play, playhead go, change patterns, etc)
+* [ ] Offset/microtiming
 * [ ] LFOs
 * [ ] Parameter lock slides
 * [ ] Mute states
@@ -48,8 +49,15 @@ Once this is done, I'll work on playback mode:
 
 These probably won't happen before I start investigating native wrappers (as described below), but I've tried to keep them in mind while building Elise:
 
+* Conditional triggers
+  * Fill mode (may need a 7th button...)
 * Live recording
 * Song mode
+* Removing various limitations (multiple parameter pages, multiple LFOs, more than 64 steps per sequence)
+* Sequencer improvements:
+  * Set steps-per-bar (configured per-track so you can do polyrhythms)
+  * Step resolution on a bar (e.g. 8th note steps, 32nd steps)
+  * ...there should be some way to do triplets that isn't manual offset/microtiming
 
 ### Future plans
 
