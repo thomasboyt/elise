@@ -49,6 +49,10 @@ Then some performance options for playback mode:
 * [ ] Chromatic mode (press pads to play chromatic notes on current track)
 * [ ] Global macros (scene macros?)
 
+### Known issues
+
+* The piano roll/grid view are really slow to render right now, especially when you have multiple octaves displayed in the piano roll. This needs some kind of virtualized grid or even a `<canvas>` implementation.
+
 ### Feature wishlist
 
 These probably won't happen before I start investigating native wrappers (as described below), but I've tried to keep them in mind while building Elise:

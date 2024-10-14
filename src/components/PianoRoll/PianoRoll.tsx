@@ -20,6 +20,13 @@ function getCells(track: MidiClipTrack): CellState[][] {
   });
 }
 
+function minInOctave(noteNumber: number) {
+  return Math.floor(noteNumber / 12) * 12;
+}
+function maxInOctave(noteNumber: number) {
+  return (Math.ceil(noteNumber / 12) + 1) * 12 - 1;
+}
+
 export function PianoRoll() {
   const { state } = useEliseContext();
 
@@ -29,15 +36,31 @@ export function PianoRoll() {
     state.ui.currentTrack,
   );
   const cells = getCells(track); // memoize me probably
+  let minRow = cells.findIndex((row) => row.some((cell) => cell === 'on'));
+  minRow = minInOctave(minRow);
+  let maxRow = cells.reduce((prevMax, row, rowIndex) => {
+    if (row.some((cell) => cell === 'on')) {
+      return rowIndex;
+    }
+    return prevMax;
+  }, 0);
+  maxRow = maxInOctave(maxRow);
 
   const gridRows = cells
-    .map((row, idx) => (
-      <GridRow key={idx} rowLabel={WebMidiUtilities.toNoteIdentifier(idx, 0)}>
-        {row.map((cell, idx) => (
-          <GridCell key={idx} state={cell} />
-        ))}
-      </GridRow>
-    ))
+    .slice(minRow, maxRow + 1)
+    .map((row, idx) => {
+      const noteNumber = idx + minRow;
+      return (
+        <GridRow
+          key={noteNumber}
+          rowLabel={WebMidiUtilities.toNoteIdentifier(noteNumber, 0)}
+        >
+          {row.map((cell, idx) => (
+            <GridCell key={idx} state={cell} />
+          ))}
+        </GridRow>
+      );
+    })
     .reverse();
 
   return <BaseGrid scroll>{gridRows}</BaseGrid>;
