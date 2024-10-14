@@ -6,6 +6,7 @@ import { StateTree } from './StateTree';
 import { ControllerMessageHandler } from './controllers/ControllerMessageHandler';
 import { VirtualController } from './components/VirtualController/VirtualController';
 import { EliseUI } from './components/EliseUI';
+import { demoProject } from './demoProject';
 
 function App() {
   const [webMidiEnabled, setWebMidiEnabled] = useState(false);
@@ -33,7 +34,7 @@ function App() {
 
   return (
     <>
-      <EliseContextProvider>
+      <EliseContextProvider project={demoProject}>
         <MIDIControllerProvider>
           <EliseUI />
           <ControllerMessageHandler />

@@ -61,7 +61,6 @@ export interface MidiStep {
 }
 
 export interface MidiClipTrack {
-  // TODO: should steps lose their p-lock values when deactivated?
   steps: (MidiStep | null)[];
   pageLength: number;
   lfo: null; // TODO (obviously)
@@ -147,23 +146,11 @@ export interface EliseState {
 }
 
 export function createEmptyTrack(): MidiClipTrack {
-  const demoMidiId = crypto.randomUUID();
   return {
     lfo: null,
-    parameterConfiguration: {
-      [demoMidiId]: {
-        channel: 1,
-        destination: null,
-        controllerNumber: 30,
-        displayValueType: 'number',
-        label: 'MIDI CC 30',
-        type: 'midiCc',
-      },
-    },
-    parameterOrder: [demoMidiId],
-    parameterValues: {
-      [demoMidiId]: null,
-    },
+    parameterConfiguration: {},
+    parameterOrder: [],
+    parameterValues: {},
     steps: new Array(16).fill(null),
     swing: 0,
     pageLength: 16,
@@ -209,9 +196,9 @@ export function createDefaultUIState(): UIState {
   };
 }
 
-export function createDefaultEliseState(): EliseState {
+export function createDefaultEliseState(project: ProjectStorage): EliseState {
   return {
-    project: createDefaultProjectStorage(),
+    project,
     ui: createDefaultUIState(),
   };
 }

@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { createDefaultEliseState, EliseState } from './state';
+import { EliseState } from './state';
 import { Updater } from 'use-immer';
 
 export interface EliseStateContextShape {
@@ -7,11 +7,12 @@ export interface EliseStateContextShape {
   update: Updater<EliseState>;
 }
 
-export const EliseContext = createContext<EliseStateContextShape>({
-  state: createDefaultEliseState(),
-  update: () => {},
-});
+export const EliseContext = createContext<EliseStateContextShape | null>(null);
 
 export function useEliseContext(): EliseStateContextShape {
-  return useContext(EliseContext);
+  const ctx = useContext(EliseContext);
+  if (!ctx) {
+    throw new Error('missing elise context');
+  }
+  return ctx;
 }
