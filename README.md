@@ -30,9 +30,9 @@ Tracks have *mute states* that can be toggled during playback.
 * [ ] Touch UI for adjusting parameters
 * [ ] Touch UI for inputting notes
 * [x] MIDI parameter configuration page
+* [ ] MIDI parameter template save/load
 * [x] Grid view
 * [ ] Piano roll
-* [ ] Global macros (scene macros?)
 * [ ] Copy/paste and/or duplication tools for tracks and sequences
 
 Once this is done, I'll work on playback mode:
@@ -41,9 +41,13 @@ Once this is done, I'll work on playback mode:
 * [ ] Offset/microtiming
 * [ ] LFOs
 * [ ] Parameter lock slides
+
+Then some performance options for playback mode:
+
 * [ ] Mute states
 * [ ] Drum mode (press Pad 1 to play a note on Track 1, Pad 2 to play a note on Track 2...)
 * [ ] Chromatic mode (press pads to play chromatic notes on current track)
+* [ ] Global macros (scene macros?)
 
 ### Feature wishlist
 

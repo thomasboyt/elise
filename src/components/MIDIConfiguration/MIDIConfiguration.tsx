@@ -51,7 +51,7 @@ export function MIDIConfiguration() {
 
         <div className={css.headerGroupControls}>
           <button disabled>Save template</button>
-          <button>Load template</button>
+          <button disabled>Load template</button>
         </div>
       </div>
 
