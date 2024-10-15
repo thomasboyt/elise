@@ -1,17 +1,21 @@
 import { UiParameterConfig } from '../ui/uiParameters';
-import { EliseUIParameter } from './EliseUIParameter';
+import { ParameterSlider } from './ParameterSlider/ParameterSlider';
 import css from './EliseUI.module.css';
+import classNames from 'classnames';
 
 interface Props {
   parameters: UiParameterConfig<unknown>[];
+  oneRow?: boolean;
 }
 
 export function EliseUIParameterList(props: Props) {
-  const { parameters } = props;
+  const { parameters, oneRow } = props;
   return (
-    <ul className={css.paramList}>
+    <ul
+      className={classNames(css.paramList, { [css.paramListOneRow]: oneRow })}
+    >
       {parameters.map((param, idx) => (
-        <EliseUIParameter key={idx} parameter={param} />
+        <ParameterSlider key={idx} parameter={param} />
       ))}
     </ul>
   );

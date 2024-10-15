@@ -33,7 +33,8 @@ Tracks have *mute states* that can be toggled during playback.
 * [ ] MIDI parameter template save/load
 * [x] Grid view
 * [x] Piano roll
-* [ ] Automation curve displays
+* [x] Automation curve displays
+  * [ ] Support step behavior curve (L shapes)
 * [ ] Copy/paste and/or duplication tools for tracks and sequences
 
 Once this is done, I'll work on playback mode:

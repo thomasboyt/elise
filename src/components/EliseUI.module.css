@@ -84,12 +84,21 @@
 
 .encoderBankContent {
   flex: 0 1 100%;
-  padding-left: 10px;
 }
 
 .paramList {
   composes: gridContainer listReset;
   grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: 100%;
+  grid-gap: 1px;
+}
+.paramListOneRow {
+  grid-template-rows: 1fr;
+}
+
+.paramList > * {
+  outline: 1px var(--orange) solid;
 }
 
 .padsSection {
@@ -176,8 +185,4 @@
 .gridAndAutomationContainer > :nth-child(2) {
   border-top: 1px var(--orange) solid;
   flex: 1 1 auto;
-}
-
-.parameterLock {
-  font-weight: bold;
 }

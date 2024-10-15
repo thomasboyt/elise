@@ -20,14 +20,23 @@ export function EliseUIEncoderBanks() {
   return (
     <div className={css.encoderBanks}>
       <EliseUIEncoderBank encoderBank="note" label="Note">
-        <EliseUINoteDisplay />
-        <EliseUIParameterList
-          parameters={[
-            noteParameters.velocity,
-            noteParameters.gate,
-            noteParameters.offset,
-          ]}
-        />
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateRows: '1fr 1fr',
+            height: '100%',
+          }}
+        >
+          <EliseUINoteDisplay />
+          <EliseUIParameterList
+            oneRow
+            parameters={[
+              noteParameters.velocity,
+              noteParameters.gate,
+              noteParameters.offset,
+            ]}
+          />
+        </div>
       </EliseUIEncoderBank>
       <EliseUIEncoderBank encoderBank="parameters" label="Params">
         <EliseUIParameterList parameters={midiParameters} />
