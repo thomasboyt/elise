@@ -371,8 +371,13 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
       this.launchHeld = !!e.value;
       this.setShiftMode();
     } else if (e.controller.number === regularButtonCCs['Pads Function']) {
-      this.funcHeld = !!e.value;
-      this.setShiftMode();
+      if (this.state.padMode === 'clip' && this.state.isPadHeld) {
+        // TODO
+        // this.emit('toggleParameterToggleMode');
+      } else {
+        this.funcHeld = !!e.value;
+        this.setShiftMode();
+      }
     }
   };
 

@@ -1,5 +1,13 @@
 import { MidiClipTrack } from '../../state/state';
-import { parameterPlockKey } from '../../state/stateUtils';
+import {
+  getAutomationTriggerAtStep,
+  getPolylinePoints,
+  getRepeatedFirstAutomationValueForTrack,
+  getStepX,
+  getStepY,
+} from './automationGraphLogic';
+
+export const POINT_RADIUS = 4;
 
 interface Props {
   stepWidth: number;
@@ -8,73 +16,70 @@ interface Props {
   parameterId: string;
 }
 
-function getAutomationCurveAtStep(
-  track: MidiClipTrack,
-  parameterId: string,
-  stepIndex: number,
-): number | null {
-  const trackValue = track.parameterValues[parameterId];
-  const step = track.steps[stepIndex];
-  const plock = step?.parameterLocks[parameterPlockKey(parameterId)];
-  if (plock) {
-    return plock.value;
-  }
-  if (stepIndex === 0) {
-    return trackValue;
-  }
-  return null;
-  // some day: interpolation time!
-  // find previous plock (or if none, use trackValue)
-  // find next plock (or if none, use trackValue)
-}
-
-function getPolylinePoints(
-  xValues: number[],
-  yValues: (number | null)[],
-): string {
-  return xValues
-    .map((x, idx) => (yValues[idx] !== null ? `${x},${yValues[idx]}` : null))
-    .filter((value) => value !== null)
-    .join(' ');
-}
-
-const POINT_RADIUS = 4;
-
 export function AutomationGraphSVG({
   stepWidth,
   track,
   height,
   parameterId,
 }: Props) {
-  const values = track.steps
-    .map((_step, idx) => getAutomationCurveAtStep(track, parameterId, idx))
-    .concat(getAutomationCurveAtStep(track, parameterId, 0));
+  const automationTriggers = track.steps
+    .map((_step, idx) => getAutomationTriggerAtStep(track, parameterId, idx))
+    .filter((trig) => !!trig);
 
-  const xValues = values.map((_, idx) => idx * stepWidth);
-  const yValues = values.map((value) =>
-    value !== null ? ((127 - value) / 127) * height : null,
+  const xValues = automationTriggers.map(({ stepIndex }) =>
+    getStepX(stepIndex, stepWidth),
+  );
+  const yValues = automationTriggers.map((trig) =>
+    getStepY(trig?.value ?? null, height),
+  );
+  const points: [number, number][] = xValues
+    .map((x, idx) => [x, yValues[idx]] as [number, number | null])
+    .filter((point): point is [number, number] => point[1] !== null);
+
+  const initY = getStepY(
+    getRepeatedFirstAutomationValueForTrack(track, automationTriggers),
+    height,
   );
 
   return (
     <svg style={{ width: '100%', height: '100%' }}>
+      {initY !== null && points[0] && (
+        <>
+          <line
+            x1={0}
+            y1={initY}
+            x2={points[0][0]}
+            y2={points[0][1]}
+            stroke="orange"
+            strokeDasharray="4 4"
+          />
+          <line
+            x1={points[points.length - 1][0]}
+            y1={points[points.length - 1][1]}
+            x2={track.steps.length * stepWidth}
+            y2={initY}
+            stroke="orange"
+            strokeDasharray="4 4"
+          />
+        </>
+      )}
+
       <polyline
         points={getPolylinePoints(xValues, yValues)}
         stroke="orange"
         fill="none"
       />
-      {values.map(
-        (value, idx) =>
-          value !== null && (
-            <rect
-              key={idx}
-              width={POINT_RADIUS * 2}
-              height={POINT_RADIUS * 2}
-              x={xValues[idx] - POINT_RADIUS}
-              y={yValues[idx]! - POINT_RADIUS}
-              fill="orange"
-            />
-          ),
-      )}
+      {points.map(([x, y], idx) => (
+        <rect
+          key={x}
+          width={POINT_RADIUS * 2}
+          height={POINT_RADIUS * 2}
+          x={x - POINT_RADIUS}
+          y={y - POINT_RADIUS}
+          stroke="orange"
+          fill={automationTriggers[idx].isPlock ? 'orange' : 'black'}
+        />
+      ))}
     </svg>
   );
 }

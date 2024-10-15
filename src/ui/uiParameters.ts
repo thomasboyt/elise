@@ -7,7 +7,13 @@ import {
 import { EliseState, MidiParameter, NoteParameter } from '../state/state';
 import { parameterPlockKey } from '../state/stateUtils';
 
-export interface UIParameterConfig<T> {
+/**
+ * TODO: I hate this system lmao
+ * Really I should just have getParameterData(state) and updateParameter() public functions in each config
+ * The rest is internal, could be like a closed over object
+ */
+interface UiBaseParameterConfig<T> {
+  type: string;
   key: string;
   label(state: EliseState): string;
   getRawValue(state: EliseState): number | null;
@@ -15,6 +21,19 @@ export interface UIParameterConfig<T> {
   getDerivedValue(rawValue: number): T;
   getDisplayValue(rawValue: number): string;
 }
+
+export interface UiNoteParameterConfig<T> extends UiBaseParameterConfig<T> {
+  type: 'note';
+}
+export interface UiMidiParameterConfig<T> extends UiBaseParameterConfig<T> {
+  type: 'midi';
+  hasParameterLock(state: EliseState): boolean;
+  setRawValue(update: Updater<EliseState>, value: number | null): void;
+}
+
+export type UiParameterConfig<T> =
+  | UiNoteParameterConfig<T>
+  | UiMidiParameterConfig<T>;
 
 function setNoteValue(draft: EliseState, key: NoteParameter, value: number) {
   const { currentScene, currentTrack, padMode } = draft.ui;
@@ -28,7 +47,8 @@ function setNoteValue(draft: EliseState, key: NoteParameter, value: number) {
   }
 }
 
-const velocity: UIParameterConfig<number> = {
+const velocity: UiNoteParameterConfig<number> = {
+  type: 'note',
   key: 'velocity',
   label: () => 'Velocity',
   getRawValue(state) {
@@ -50,7 +70,8 @@ const velocity: UIParameterConfig<number> = {
 
 // Gate is defined as a number of steps, 1-64
 // going to have to see how much this sucks in practice lol
-const gate: UIParameterConfig<number> = {
+const gate: UiNoteParameterConfig<number> = {
+  type: 'note',
   key: 'gate',
   label: () => 'Gate length',
   getRawValue(state) {
@@ -70,7 +91,8 @@ const gate: UIParameterConfig<number> = {
   },
 };
 
-const offset: UIParameterConfig<number> = {
+const offset: UiNoteParameterConfig<number> = {
+  type: 'note',
   key: 'offset',
   label: () => 'Offset',
   getRawValue(state) {
@@ -114,8 +136,9 @@ export function getMidiParameterLabel(parameter: MidiParameter): string {
   return getDefaultMidiParameterLabel(parameter);
 }
 
-export function getUIMidiParameter(id: string): UIParameterConfig<number> {
+export function getUIMidiParameter(id: string): UiMidiParameterConfig<number> {
   return {
+    type: 'midi',
     key: `midiParameter-${id}`,
     label(state) {
       const track = getTrackOrThrow(
@@ -128,6 +151,11 @@ export function getUIMidiParameter(id: string): UIParameterConfig<number> {
         return '---';
       }
       return getMidiParameterLabel(parameter);
+    },
+    hasParameterLock(state) {
+      const currentStep = getHeldStep(state);
+      const parameterLock = currentStep?.parameterLocks[parameterPlockKey(id)];
+      return !!parameterLock;
     },
     getRawValue(state) {
       const track = getTrackOrThrow(
@@ -153,11 +181,15 @@ export function getUIMidiParameter(id: string): UIParameterConfig<number> {
         );
         const currentStep = getHeldStep(draft);
         if (currentStep) {
-          currentStep.parameterLocks[parameterPlockKey(id)] = {
-            id,
-            type: 'midiParameter',
-            value,
-          };
+          if (value === null) {
+            delete currentStep.parameterLocks[parameterPlockKey(id)];
+          } else {
+            currentStep.parameterLocks[parameterPlockKey(id)] = {
+              id,
+              type: 'midiParameter',
+              value,
+            };
+          }
         } else {
           track.parameterValues[id] = value;
           // TODO: this would be where we broadcast the MIDI CC to a live track, I guess??

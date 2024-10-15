@@ -22,6 +22,7 @@ export interface ControllerState {
    * controller, and some only make sense in some contexts.
    */
   padMode: PadMode;
+  isPadHeld: boolean;
   // TODO: current scene (for display state)
   // TODO: current track (for display state)
   // TODO: current bar (for display state)
@@ -37,6 +38,7 @@ export function getControllerState(state: EliseState): ControllerState {
     encoders,
     pads,
     padMode,
+    isPadHeld: state.ui.heldPad !== null,
   };
 }
 
@@ -46,5 +48,6 @@ export function initControllerState(): ControllerState {
     encoderBank: 'note',
     encoders: new Array(8).fill(null),
     pads: new Array(16).fill('off'),
+    isPadHeld: false,
   };
 }

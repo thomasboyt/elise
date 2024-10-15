@@ -108,6 +108,10 @@ export function getMaximumStepPage(
   trackIndex: number,
 ): number {
   const track = state.project.scenes[sceneIndex]!.tracks[trackIndex]!;
+  return getMaximumStepPageForTrack(track);
+}
+
+export function getMaximumStepPageForTrack(track: MidiClipTrack): number {
   const { pageLength, steps } = track;
   return Math.ceil(steps.length / pageLength) - 1;
 }

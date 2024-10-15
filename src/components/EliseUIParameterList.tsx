@@ -1,9 +1,9 @@
-import { UIParameterConfig } from '../ui/uiParameters';
+import { UiParameterConfig } from '../ui/uiParameters';
 import { EliseUIParameter } from './EliseUIParameter';
 import css from './EliseUI.module.css';
 
 interface Props {
-  parameters: UIParameterConfig<unknown>[];
+  parameters: UiParameterConfig<unknown>[];
 }
 
 export function EliseUIParameterList(props: Props) {

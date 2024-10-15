@@ -225,6 +225,7 @@ export function addMidiParameterConfigurationForTrack(
   update((draft) => {
     const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
     track.parameterConfiguration[id] = configuration;
+    track.parameterValues[id] = null;
     track.parameterOrder.push(id);
   });
 }
@@ -238,6 +239,7 @@ export function removeMidiParameterConfigurationForTrack(
   update((draft) => {
     const track = draft.project.scenes[sceneIndex]!.tracks[trackIndex]!;
     delete track.parameterConfiguration[id];
+    delete track.parameterValues[id];
     track.parameterOrder = track.parameterOrder.filter((item) => item !== id);
     const activeSteps = track.steps.filter((step) => step !== null);
     for (const step of activeSteps) {
