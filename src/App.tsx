@@ -6,19 +6,28 @@ import { EliseUI } from './components/EliseUI';
 import { demoProject } from './demoProject';
 import { WebMidiPortProvider } from './midi/WebMidiPortProvider';
 import { WebMidiLoader } from './midi/WebMidiLoader';
+import { AUMidiPortProvider } from './midi/AUMidiPortProvider';
 
 function App() {
+  const audioUnitMode = document.location.search.includes('au');
+
+  const inner = (
+    <EliseContextProvider project={demoProject}>
+      <MIDIControllerProvider>
+        <EliseUI />
+        <ControllerMessageHandler />
+        <VirtualController />
+      </MIDIControllerProvider>
+    </EliseContextProvider>
+  );
+
+  if (audioUnitMode) {
+    return <AUMidiPortProvider>{inner}</AUMidiPortProvider>;
+  }
+
   return (
     <WebMidiLoader>
-      <WebMidiPortProvider>
-        <EliseContextProvider project={demoProject}>
-          <MIDIControllerProvider>
-            <EliseUI />
-            <ControllerMessageHandler />
-            <VirtualController />
-          </MIDIControllerProvider>
-        </EliseContextProvider>
-      </WebMidiPortProvider>
+      <WebMidiPortProvider>{inner}</WebMidiPortProvider>
     </WebMidiLoader>
   );
 }
