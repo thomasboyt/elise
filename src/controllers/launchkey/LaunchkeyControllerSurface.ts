@@ -1,4 +1,3 @@
-import * as WebMidi from 'webmidi';
 import { launchkeySysexMessageFactories } from './LaunchkeySysex';
 import {
   absoluteEncoderCcOffset,
@@ -20,6 +19,7 @@ import {
 import { EncoderBank } from '../../state/state';
 import { PadColor, PadMode } from '../../ui/uiModels';
 import { ControllerSurface } from '../ControllerSurface';
+import { MidiInputPort, MidiOutputPort } from '../../midi/MidiPort';
 
 export class LaunchkeyControllerSurface extends ControllerSurface {
   private initialized = false;
@@ -30,24 +30,21 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
   private funcHeld: boolean = false;
   private launchHeld: boolean = false;
 
-  private midiInput: WebMidi.Input;
-  private dawInput: WebMidi.Input;
-  // private midiOutput: WebMidi.Output;
-  private dawOutput: WebMidi.Output;
+  private midiInput: MidiInputPort;
+  private dawInput: MidiInputPort;
+  private dawOutput: MidiOutputPort;
   private sku: LaunchkeySkuType;
 
   constructor(
-    midiInput: WebMidi.Input,
-    dawInput: WebMidi.Input,
-    _midiOutput: WebMidi.Output,
-    dawOutput: WebMidi.Output,
+    midiInput: MidiInputPort,
+    dawInput: MidiInputPort,
+    dawOutput: MidiOutputPort,
     sku: LaunchkeySkuType,
   ) {
     super();
     this.sku = sku;
     this.midiInput = midiInput;
     this.dawInput = dawInput;
-    // this.midiOutput = midiOutput;
     this.dawOutput = dawOutput;
   }
 
@@ -94,11 +91,8 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     // Page 14
     // TODO: GET LED BRIGHTNESS LEVEL
     const buttonCCs = this.sku === 'mini' ? miniButtonCCs : regularButtonCCs;
-    this.dawOutput.channels[4].sendControlChange(
-      buttonCCs['Pads Function'],
-      63,
-    );
-    this.dawOutput.channels[4].sendControlChange(buttonCCs['Pads Launch'], 63);
+    this.dawOutput.sendControlChange(4, buttonCCs['Pads Function'], 63);
+    this.dawOutput.sendControlChange(4, buttonCCs['Pads Launch'], 63);
   }
 
   teardownController(): void {
@@ -143,15 +137,11 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     if (this.launchkeyPadMode === 'daw') {
       const note = DawModePad.toNote(padIndex);
       this.logOutgoing('Set DAW mode pad', padIndex, color);
-      this.dawOutput.channels[1].sendNoteOn(note, {
-        rawAttack: padColors[color],
-      });
+      this.dawOutput.sendNoteOn(1, note, padColors[color]);
     } else if (this.launchkeyPadMode === 'drum') {
       const note = DrumModePad.toNote(padIndex);
       this.logOutgoing('Set drum mode pad', padIndex, color);
-      this.dawOutput.channels[10].sendNoteOn(note, {
-        rawAttack: padColors[color],
-      });
+      this.dawOutput.sendNoteOn(10, note, padColors[color]);
     }
   }
 
@@ -197,7 +187,7 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     }
     if (midiCc) {
       this.logOutgoing('Set encoder value ', encoderIndex, value);
-      this.dawOutput.channels[16].sendControlChange(midiCc, value);
+      this.dawOutput.sendControlChange(16, midiCc, value);
       this.sendRawMessage(
         launchkeySysexMessageFactories.setDisplayText(
           this.sku,
@@ -210,7 +200,7 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
   }
 
   private sendRawMessage(data: number[]) {
-    this.dawOutput.send(data);
+    this.dawOutput.sendRaw(data);
   }
 
   private setStationaryDisplay(lineOne: string, lineTwo: string) {
@@ -250,132 +240,159 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     // Page 14
     // TODO: GET LED BRIGHTNESS LEVEL
     const buttonCCs = this.sku === 'mini' ? miniButtonCCs : regularButtonCCs;
-    this.dawOutput.channels[4].sendControlChange(
+    this.dawOutput.sendControlChange(
+      4,
       buttonCCs['Encoders Up'],
       upState ? 63 : 0,
     );
-    this.dawOutput.channels[4].sendControlChange(
+    this.dawOutput.sendControlChange(
+      4,
       buttonCCs['Encoders Down'],
       downState ? 63 : 0,
     );
   }
 
-  // I hate the boilerplate and having to remember to unregister, but don't know
-  // how to do nice type safety with a list of event listeners or w/e
-
   private registerEventListeners() {
     this.log('Registered event listeners');
-    this.dawInput.addListener('midimessage', this.handleMidiMessage);
-    this.midiInput.addListener('midimessage', this.handleMidiMessage);
-    this.dawInput.channels[1].addListener(
-      'noteon',
-      this.handleDawModePadNoteOn,
-    );
-    this.dawInput.channels[1].addListener(
-      'noteoff',
-      this.handleDawModePadNoteOff,
-    );
-    this.dawInput.channels[1].addListener(
-      'controlchange',
-      this.handleControlChangeCh1,
-    );
-    this.dawInput.channels[10].addListener(
-      'noteon',
-      this.handleDrumModePadNoteOn,
-    );
-    this.dawInput.channels[7].addListener(
-      'controlchange',
-      this.handleControlChangeCh7,
-    );
-    this.dawInput.channels[16].addListener(
-      'controlchange',
-      this.handleControlChangeCh16,
-    );
-    this.midiInput.addListener('noteon', this.handleMidiNoteOn);
-    this.midiInput.addListener('noteoff', this.handleMidiNoteOff);
+
+    // TODO: logging?
+    // this.dawInput.addListener('midimessage', this.handleMidiMessage);
+    // this.midiInput.addListener('midimessage', this.handleMidiMessage);
+    this.dawInput.on('noteOn', this.handleDawInputNoteOn);
+    this.dawInput.on('noteOff', this.handleDawInputNoteOff);
+    this.midiInput.on('noteOn', this.handleMidiInputNoteOn);
+    this.midiInput.on('noteOff', this.handleMidiInputNoteOff);
+    this.dawInput.on('controlChange', this.handleDawInputControlChange);
   }
 
   private unregisterEventListeners() {
     this.log('Unregistered event listeners');
-    this.dawInput.removeListener('midimessage', this.handleMidiMessage);
-    this.midiInput.removeListener('midimessage', this.handleMidiMessage);
-    this.dawInput.channels[1].removeListener(
-      'noteon',
-      this.handleDawModePadNoteOn,
-    );
-    this.dawInput.channels[1].removeListener(
-      'noteoff',
-      this.handleDawModePadNoteOff,
-    );
-    this.dawInput.channels[1].removeListener(
-      'controlchange',
-      this.handleControlChangeCh1,
-    );
-    this.dawInput.channels[10].removeListener(
-      'noteon',
-      this.handleDrumModePadNoteOff,
-    );
-    this.dawInput.channels[7].removeListener(
-      'controlchange',
-      this.handleControlChangeCh7,
-    );
-    this.dawInput.channels[16].removeListener(
-      'controlchange',
-      this.handleControlChangeCh16,
-    );
-    this.midiInput.removeListener('noteon', this.handleMidiNoteOn);
-    this.midiInput.removeListener('noteoff', this.handleMidiNoteOff);
+    // this.dawInput.removeListener('midimessage', this.handleMidiMessage);
+    // this.midiInput.removeListener('midimessage', this.handleMidiMessage);
+    this.dawInput.off('noteOn', this.handleDawInputNoteOn);
+    this.dawInput.off('noteOff', this.handleDawInputNoteOff);
+    this.midiInput.off('noteOn', this.handleMidiInputNoteOn);
+    this.midiInput.off('noteOff', this.handleMidiInputNoteOff);
+    this.dawInput.off('controlChange', this.handleDawInputControlChange);
   }
 
-  private handleMidiMessage = (e: WebMidi.MessageEvent) => {
-    console.debug(
-      `MIDI: ${e.port.id}/${e.message.channel} - ${e.message.type} ${e.message.data}`,
-    );
+  private handleDawInputNoteOn = (
+    channel: number,
+    note: number,
+    velocity: number,
+  ) => {
+    if (channel === 1) {
+      if (velocity > 0) {
+        this.handleDawModePadNoteOn(note, velocity);
+      } else {
+        this.handleDawModePadNoteOff(note);
+      }
+    } else if (channel === 10) {
+      if (velocity > 0) {
+        this.handleDrumModePadNoteOn(note, velocity);
+      } else {
+        this.handleDrumModePadNoteOff(note);
+      }
+    }
   };
 
-  private handleDawModePadNoteOn = (e: WebMidi.NoteMessageEvent) => {
-    const padIndex = DawModePad.fromNote(e.note.number);
-    this.logIncoming('Pad DAW mode note on', padIndex, e.note.rawAttack);
-    this.emit('padOn', padIndex, e.note.rawAttack);
+  private handleDawInputNoteOff = (channel: number, note: number) => {
+    if (channel === 1) {
+      this.handleDawModePadNoteOff(note);
+    } else if (channel === 10) {
+      this.handleDrumModePadNoteOff(note);
+    }
   };
 
-  private handleDawModePadNoteOff = (e: WebMidi.NoteMessageEvent) => {
-    const padIndex = DawModePad.fromNote(e.note.number);
+  private handleDawModePadNoteOn = (note: number, velocity: number) => {
+    const padIndex = DawModePad.fromNote(note);
+    this.logIncoming('Pad DAW mode note on', padIndex, note, velocity);
+    this.emit('padOn', padIndex, velocity);
+  };
+
+  private handleDawModePadNoteOff = (note: number) => {
+    const padIndex = DawModePad.fromNote(note);
     this.logIncoming('Pad DAW mode note off', padIndex);
     this.emit('padOff', padIndex);
   };
 
-  private handleDrumModePadNoteOn = (e: WebMidi.NoteMessageEvent) => {
-    const padIndex = DrumModePad.fromNote(e.note.number);
-    this.logIncoming('Pad drum mode note on', padIndex, e.note.rawAttack);
-    this.emit('padOn', padIndex, e.note.rawAttack);
+  private handleDrumModePadNoteOn = (note: number, velocity: number) => {
+    const padIndex = DrumModePad.fromNote(note);
+    this.logIncoming('Pad drum mode note on', padIndex, velocity);
+    this.emit('padOn', padIndex, velocity);
   };
 
-  private handleDrumModePadNoteOff = (e: WebMidi.NoteMessageEvent) => {
-    const padIndex = DrumModePad.fromNote(e.note.number);
+  private handleDrumModePadNoteOff = (note: number) => {
+    const padIndex = DrumModePad.fromNote(note);
     this.logIncoming('Pad drum mode note off', padIndex);
     this.emit('padOff', padIndex);
   };
 
-  private handleControlChangeCh1 = (e: WebMidi.ControlChangeMessageEvent) => {
+  private handleMidiInputNoteOn = (
+    channel: number,
+    note: number,
+    velocity: number,
+  ) => {
+    if (velocity === 0) {
+      this.handleMidiInputNoteOff(channel, note);
+      return;
+    }
+    this.logIncoming('Keyboard note on', note, velocity);
+    this.emit('keyboardNoteOn', channel, note, velocity);
+  };
+
+  private handleMidiInputNoteOff = (channel: number, note: number) => {
+    this.logIncoming('Keyboard note off', note);
+    this.emit('keyboardNoteOff', channel, note);
+  };
+
+  // private handleMidiMessage = (e: WebMidi.MessageEvent) => {
+  //   console.debug(
+  //     `MIDI: ${e.port.id}/${e.message.channel} - ${e.message.type} ${e.message.data}`,
+  //   );
+  // };
+
+  private handleDawInputControlChange = (
+    channel: number,
+    controllerNumber: number,
+    value: number | null,
+  ) => {
+    if (value === null) {
+      // TODO: is there ever a case where we need to support this?
+      return;
+    }
+
+    if (channel === 1) {
+      this.handleControlChangeCh1(controllerNumber, value);
+    } else if (channel === 7) {
+      this.handleControlChangeCh7(controllerNumber, value);
+    } else if (channel === 16) {
+      this.handleControlChangeCh16(controllerNumber, value);
+    }
+  };
+
+  private handleControlChangeCh1 = (
+    controllerNumber: number,
+    value: number,
+  ) => {
     const buttonCCs = this.sku === 'mini' ? miniButtonCCs : regularButtonCCs;
-    if (e.controller.number === buttonCCs['Encoders Up'] && e.value) {
+    if (controllerNumber === buttonCCs['Encoders Up'] && value) {
       this.emit('prevEncoderBank');
-    } else if (e.controller.number === buttonCCs['Encoders Down'] && e.value) {
+    } else if (controllerNumber === buttonCCs['Encoders Down'] && value) {
       this.emit('nextEncoderBank');
-    } else if (e.controller.number === buttonCCs['Pads Up'] && e.value) {
+    } else if (controllerNumber === buttonCCs['Pads Up'] && value) {
       this.emit('prevClipBar');
-    } else if (e.controller.number === buttonCCs['Pads Down'] && e.value) {
+    } else if (controllerNumber === buttonCCs['Pads Down'] && value) {
       this.emit('nextClipBar');
-    } else if (e.controller.number === regularButtonCCs['Pads Launch']) {
-      this.launchHeld = !!e.value;
+    } else if (controllerNumber === regularButtonCCs['Pads Launch']) {
+      this.launchHeld = !!value;
       this.setShiftMode();
-    } else if (e.controller.number === regularButtonCCs['Pads Function']) {
+    } else if (controllerNumber === regularButtonCCs['Pads Function']) {
       if (this.state.padMode === 'clip' && this.state.isPadHeld) {
         // TODO
         // this.emit('toggleParameterToggleMode');
       } else {
-        this.funcHeld = !!e.value;
+        this.funcHeld = !!value;
         this.setShiftMode();
       }
     }
@@ -412,39 +429,42 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     }
   }
 
-  private handleControlChangeCh7 = (e: WebMidi.ControlChangeMessageEvent) => {
-    if (e.controller.number === 29) {
-      this.handleChangeLKPadMode(e);
+  private handleControlChangeCh7 = (
+    controllerNumber: number,
+    value: number,
+  ) => {
+    if (controllerNumber === 29) {
+      this.handleChangeLKPadMode(value);
     }
-    if (e.controller.number === 30) {
-      this.handleChangeEncoderMode(e);
+    if (controllerNumber === 30) {
+      this.handleChangeEncoderMode(value);
     }
   };
 
-  private handleChangeLKPadMode = (e: WebMidi.ControlChangeMessageEvent) => {
-    const lkPadMode = midiCCToPadMode.get(e.rawValue!);
+  private handleChangeLKPadMode = (value: number) => {
+    const lkPadMode = midiCCToPadMode.get(value);
     if (!lkPadMode) {
-      throw new Error(`Unrecognized pad mode CC ${e.rawValue}`);
+      throw new Error(`Unrecognized pad mode CC ${value}`);
     }
     this.logIncoming('Launchkey pad mode change', lkPadMode);
     this.launchkeyPadMode = lkPadMode;
     // TODO: emit page change?
   };
 
-  private handleChangeEncoderMode = (e: WebMidi.ControlChangeMessageEvent) => {
-    const encoderMode = midiCCToEncoderMode.get(e.rawValue!);
+  private handleChangeEncoderMode = (value: number) => {
+    const encoderMode = midiCCToEncoderMode.get(value);
     if (!encoderMode) {
-      throw new Error(`Unrecognized encoder mode CC value ${e.rawValue}`);
+      throw new Error(`Unrecognized encoder mode CC value ${value}`);
     }
     this.logIncoming('Launchkey encoder mode change', encoderMode);
     this.launchkeyEncoderMode = encoderMode;
     // TODO: emit page change?
   };
 
-  private handleControlChangeCh16 = (e: WebMidi.ControlChangeMessageEvent) => {
-    const controllerNumber = e.controller.number;
-    const value = e.rawValue!;
-
+  private handleControlChangeCh16 = (
+    controllerNumber: number,
+    value: number,
+  ) => {
     if (
       controllerNumber >= absoluteEncoderCcOffset &&
       controllerNumber <= absoluteEncoderCcOffset + 8
@@ -464,27 +484,6 @@ export class LaunchkeyControllerSurface extends ControllerSurface {
     if (this.sku === 'regular') {
       // TODO: faders & fader buttons
     }
-  };
-
-  private handleMidiNoteOn = (e: WebMidi.NoteMessageEvent) => {
-    this.logIncoming('Keyboard note on', e.note.number, e.note.rawAttack);
-
-    if (e.note.rawAttack === 0) {
-      // I'm pretty sure WebMidi handles this for us, but just in case
-      this.handleMidiNoteOff(e);
-      return;
-    }
-    this.emit(
-      'keyboardNoteOn',
-      e.message.channel,
-      e.note.number,
-      e.note.rawAttack,
-    );
-  };
-
-  private handleMidiNoteOff = (e: WebMidi.NoteMessageEvent) => {
-    this.logIncoming('Keyboard note off', e.note.number);
-    this.emit('keyboardNoteOff', e.message.channel, e.note.number);
   };
 
   private log(...args: unknown[]) {
