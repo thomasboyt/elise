@@ -22,10 +22,15 @@ export function useVirtualController(): VirtualControllerSurface {
   return context.virtualController;
 }
 
-export function useHardwareConnected(): boolean {
+export function useLaunchkeyContext() {
   const context = useContext(MIDIControllerContext);
   if (!context) {
     throw new Error('Missing midi controller context');
   }
-  return context.hardwareConnected;
+
+  return {
+    enabled: context.controllerEnabled,
+    available: context.launchkeyPortsAvailable,
+    handleEnableLaunchkey: context.handleEnableLaunchkey,
+  };
 }

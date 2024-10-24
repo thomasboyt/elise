@@ -1,40 +1,10 @@
+import {
+  getInitialPortsReplySchema,
+  KaoriClientRequest,
+} from './kaoriClientMessages';
+import { KaoriIncomingControllerMidiMessage } from './kaoriIncomingMessages';
+import { WKMidiMessage } from './kaoriSharedMessages';
 import { TypedEventEmitter } from './TypedEventEmitter';
-
-interface WKMidiBaseMessage {
-  type: string;
-  port: number;
-}
-
-interface WKMidiNoteOnMessage extends WKMidiBaseMessage {
-  type: 'noteOn';
-  channel: number;
-  note: number;
-  velocity: number;
-}
-
-interface WKMidiNoteOffMessage extends WKMidiBaseMessage {
-  type: 'noteOff';
-  channel: number;
-  note: number;
-}
-
-interface WKMidiControlChangeMessage extends WKMidiBaseMessage {
-  type: 'controlChange';
-  channel: number;
-  controllerNumber: number;
-  value: number | null;
-}
-
-interface WKMidiRawMessage extends WKMidiBaseMessage {
-  type: 'raw';
-  data: number[];
-}
-
-type WKMidiMessage =
-  | WKMidiControlChangeMessage
-  | WKMidiNoteOnMessage
-  | WKMidiNoteOffMessage
-  | WKMidiRawMessage;
 
 export const sendControllerMidiMessage = (msg: WKMidiMessage) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,19 +14,10 @@ export const sendControllerMidiMessage = (msg: WKMidiMessage) => {
   });
 };
 
-export type IncomingControlerMidiMessage =
-  | WKMidiNoteOnMessage
-  | WKMidiNoteOffMessage
-  | WKMidiControlChangeMessage;
-
 export type WKBridgeEvents = {
-  controllerMidiMessage: [IncomingControlerMidiMessage];
+  controllerMidiMessage: [KaoriIncomingControllerMidiMessage];
   updatePorts: [{ inputCount: number; outputCount: number }];
 };
-
-type KaoriMessage =
-  | { type: 'midiController'; detail: WKMidiMessage }
-  | { type: 'getInitialPorts' };
 
 /**
  * Native app will call with evaluateJavascript():
@@ -73,7 +34,7 @@ export class WKBridge extends TypedEventEmitter<WKBridgeEvents> {
     delete (window as any).wkBridge;
   }
 
-  private wkPostMessage(msg: KaoriMessage) {
+  private wkPostMessage(msg: KaoriClientRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (window as any).webkit.messageHandlers.kaori.postMessage(msg);
   }
@@ -82,15 +43,16 @@ export class WKBridge extends TypedEventEmitter<WKBridgeEvents> {
     const reply = await this.wkPostMessage({
       type: 'getInitialPorts',
     });
+    const parsed = getInitialPortsReplySchema.parse(reply);
 
     return {
-      inputCount: reply.inputCount,
-      outputCount: reply.outputCount,
+      inputCount: parsed.inputCount,
+      outputCount: parsed.outputCount,
     };
   }
 
   // Global functions called by native app injecting with evaluateJavascript():
-  sendMidiFromNativeApp(msg: IncomingControlerMidiMessage) {
+  sendMidiFromNativeApp(msg: KaoriIncomingControllerMidiMessage) {
     // TODO: this is over an i/o barrier and runtime validation of message might be nice
     this.emit('controllerMidiMessage', msg);
   }

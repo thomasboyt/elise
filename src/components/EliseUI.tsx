@@ -1,5 +1,4 @@
 import classNames from 'classnames';
-import { useHardwareConnected } from '../controllers/useMidiController';
 import {
   handleEnterPadClipMode,
   handleEnterPadSceneMode,
@@ -18,10 +17,10 @@ import { EliseUIPads } from './EliseUIPads';
 import { MIDIConfiguration } from './MIDIConfiguration/MIDIConfiguration';
 import { PianoRoll } from './PianoRoll/PianoRoll';
 import css from './EliseUI.module.css';
+import { LaunchkeyLoader } from './LaunchkeyLoader';
 
 export function EliseUI() {
   const { state, update } = useEliseContext();
-  const hardwareConnected = useHardwareConnected();
 
   const currentStepIndex =
     state.ui.heldPad === null || state.ui.padMode !== 'clip'
@@ -39,8 +38,7 @@ export function EliseUI() {
     <div className={css.eliseUi}>
       <div className={css.display}>
         <div className={css.topBar}>
-          Launchkey{' '}
-          {hardwareConnected ? <strong>connected</strong> : 'disconnected'}
+          <LaunchkeyLoader />
           {` | Scene: ${state.ui.currentScene} / Track: ${state.ui.currentTrack} / Bar: ${state.ui.currentStepsPage} / Step: ${currentStepIndex ?? '---'}`}
         </div>
         <EliseUIButtonRow className={css.topButtons}>

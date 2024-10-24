@@ -1,8 +1,5 @@
-import {
-  IncomingControlerMidiMessage,
-  sendControllerMidiMessage,
-  WKBridge,
-} from '../util/WKBridge';
+import { KaoriIncomingControllerMidiMessage } from '../util/kaoriIncomingMessages';
+import { sendControllerMidiMessage, WKBridge } from '../util/WKBridge';
 import { MidiInputPort, MidiOutputPort } from './MidiPort';
 
 export class AUMidiOutputPort extends MidiOutputPort {
@@ -18,7 +15,7 @@ export class AUMidiOutputPort extends MidiOutputPort {
     sendControllerMidiMessage({
       port: this.port,
       type: 'controlChange',
-      channel,
+      channel: channel - 1, // 0-indexed
       controllerNumber,
       value,
     });
@@ -28,7 +25,7 @@ export class AUMidiOutputPort extends MidiOutputPort {
     sendControllerMidiMessage({
       port: this.port,
       type: 'noteOn',
-      channel,
+      channel: channel - 1, // 0-indexed
       note,
       velocity,
     });
@@ -62,7 +59,9 @@ export class AUMidiInputPort extends MidiInputPort {
     this.bridge.off('controllerMidiMessage', this.handleControllerMidiMessage);
   }
 
-  private handleControllerMidiMessage = (msg: IncomingControlerMidiMessage) => {
+  private handleControllerMidiMessage = (
+    msg: KaoriIncomingControllerMidiMessage,
+  ) => {
     if (msg.port !== this.port) {
       return;
     }

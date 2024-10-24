@@ -68,30 +68,30 @@ export const AUMidiPortProvider = ({ children }: Props) => {
       inputCount: number;
       outputCount: number;
     }) {
-      if (inputsRef.current.length > inputCount) {
+      const currentInputCount = inputsRef.current.length;
+      const currentOutputCount = outputsRef.current.length;
+      if (currentInputCount > inputCount) {
         // remove extra inputs
         const diff = inputCount - inputsRef.current.length;
         inputsRef.current
           .slice(-diff)
           .forEach((input) => input.unregisterEventListeners());
         setInputs((inputs) => inputs.concat().slice(0, diff));
-      } else if (inputsRef.current.length < inputCount) {
+      } else if (currentInputCount < inputCount) {
         // add inputs
-        const diff = inputCount - inputsRef.current.length;
-        for (let i = 0; i < diff; i++) {
-          registerInput(inputCount + i);
+        for (let i = currentInputCount; i < inputCount; i++) {
+          registerInput(i);
         }
       }
 
-      if (outputsRef.current.length > outputCount) {
+      if (currentOutputCount > outputCount) {
         // remove extra outputs
-        const diff = outputCount - outputsRef.current.length;
+        const diff = outputCount - currentOutputCount;
         setOutputs((outputs) => outputs.concat().slice(0, diff));
       } else if (outputsRef.current.length < outputCount) {
         // add outputs
-        const diff = outputCount - outputsRef.current.length;
-        for (let i = 0; i < diff; i++) {
-          registerOutput(outputCount + i);
+        for (let i = currentOutputCount; i < outputCount; i++) {
+          registerOutput(i);
         }
       }
     }
