@@ -66,11 +66,16 @@ export class AUMidiInputPort extends MidiInputPort {
       return;
     }
     if (msg.type === 'controlChange') {
-      this.emit('controlChange', msg.channel, msg.controllerNumber, msg.value);
+      this.emit(
+        'controlChange',
+        msg.channel + 1,
+        msg.controllerNumber,
+        msg.value,
+      );
     } else if (msg.type === 'noteOn') {
-      this.emit('noteOn', msg.channel, msg.note, msg.velocity);
+      this.emit('noteOn', msg.channel + 1, msg.note, msg.velocity);
     } else if (msg.type === 'noteOff') {
-      this.emit('noteOff', msg.channel, msg.note);
+      this.emit('noteOff', msg.channel + 1, msg.note);
     }
   };
 }
