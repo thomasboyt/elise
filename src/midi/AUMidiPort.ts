@@ -1,5 +1,5 @@
 import { KaoriIncomingControllerMidiMessage } from '../util/kaoriIncomingMessages';
-import { sendControllerMidiMessage, WKBridge } from '../util/WKBridge';
+import { sendControllerMidiMessage, KaoriBridge } from '../util/KaoriBridge';
 import { MidiInputPort, MidiOutputPort } from './MidiPort';
 
 export class AUMidiOutputPort extends MidiOutputPort {
@@ -42,9 +42,9 @@ export class AUMidiOutputPort extends MidiOutputPort {
 
 export class AUMidiInputPort extends MidiInputPort {
   port: number;
-  bridge: WKBridge;
+  bridge: KaoriBridge;
 
-  constructor(port: number, bridge: WKBridge) {
+  constructor(port: number, bridge: KaoriBridge) {
     const label = `AU Input ${port}`;
     super(label);
     this.port = port;

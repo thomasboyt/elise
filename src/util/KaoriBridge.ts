@@ -14,24 +14,24 @@ export const sendControllerMidiMessage = (msg: WKMidiMessage) => {
   });
 };
 
-export type WKBridgeEvents = {
+export type KaoriBridgeEvents = {
   controllerMidiMessage: [KaoriIncomingControllerMidiMessage];
   updatePorts: [{ inputCount: number; outputCount: number }];
 };
 
 /**
  * Native app will call with evaluateJavascript():
- * window.wkBridge.sendMidiFromNativeApp(midiMessage);
+ * window.KaoriBridge.sendMidiFromNativeApp(midiMessage);
  */
-export class WKBridge extends TypedEventEmitter<WKBridgeEvents> {
+export class KaoriBridge extends TypedEventEmitter<KaoriBridgeEvents> {
   register() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).wkBridge = this;
+    (window as any).KaoriBridge = this;
   }
 
   unregister() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    delete (window as any).wkBridge;
+    delete (window as any).KaoriBridge;
   }
 
   private wkPostMessage(msg: KaoriClientRequest) {

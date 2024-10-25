@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { MidiPortContext } from './MidiPortContext';
 import { MidiInputPort, MidiOutputPort } from './MidiPort';
 import { AUMidiInputPort, AUMidiOutputPort } from './AUMidiPort';
-import { WKBridge } from '../util/WKBridge';
+import { KaoriBridge } from '../util/KaoriBridge';
 
 const portNumberKey = (number: number) => `port-${number}`;
 function portsById<T extends MidiInputPort | MidiOutputPort>(
@@ -33,7 +33,7 @@ interface Props {
  */
 export const AUMidiPortProvider = ({ children }: Props) => {
   // TODO: move this to a separate provider
-  const [bridge] = useState(() => new WKBridge());
+  const [bridge] = useState(() => new KaoriBridge());
 
   const [inputs, setInputs] = useState<MidiInputPort[]>([]);
   const [outputs, setOutputs] = useState<MidiOutputPort[]>([]);
